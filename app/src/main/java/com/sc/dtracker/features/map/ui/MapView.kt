@@ -9,7 +9,10 @@ import androidx.compose.ui.Modifier
 
 @Composable
 fun MapView() {
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
         Text(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally),

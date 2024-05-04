@@ -1,7 +1,7 @@
 package com.sc.dtracker.ui
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -21,13 +21,17 @@ import com.sc.dtracker.ui.views.BottomNavBar
 import com.sc.dtracker.ui.views.BottomNavBarItem
 import kotlinx.collections.immutable.persistentListOf
 
+
 @Composable
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 fun BaseScreen(modifier: Modifier = Modifier) {
 
     TabNavigator(MapScreen) {
         Scaffold(
             content = {
-                Box(modifier = modifier.consumeWindowInsets(it)) {
+                Box(
+                    modifier = modifier
+                ) {
                     CurrentTab()
                 }
             },

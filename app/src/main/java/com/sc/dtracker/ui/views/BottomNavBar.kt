@@ -1,13 +1,19 @@
 package com.sc.dtracker.ui.views
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -66,57 +72,67 @@ fun BottomNavBar(
     buttons: ImmutableList<BottomNavBarItem>,
     fabOnClick: () -> Unit = {}
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(barHeight + fabSize / 2)
-    ) {
-        Card(
+
+    Column {
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(barHeight)
-                .align(Alignment.BottomCenter),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
-            shape = RoundedCornerShape(
-                topStart = cardTopCornerSize,
-                topEnd = cardTopCornerSize,
-                bottomEnd = 0.dp,
-                bottomStart = 0.dp
-            )
+                .height(barHeight + fabSize / 2)
         ) {
-            Row(
-                modifier = Modifier.fillMaxSize(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceAround
-            )
-            {
-                val buttonsSize = buttons.size
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(barHeight)
+                    .align(Alignment.BottomCenter),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
+                shape = RoundedCornerShape(
+                    topStart = cardTopCornerSize,
+                    topEnd = cardTopCornerSize,
+                    bottomEnd = 0.dp,
+                    bottomStart = 0.dp
+                )
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceAround
+                )
+                {
+                    val buttonsSize = buttons.size
 
-                repeat(buttonsSize / 2) {
-                    BottomNavBarItem(buttons[it])
-                }
-                Spacer(modifier = Modifier.size(fabSize))
-                repeat(buttonsSize / 2) {
-                    BottomNavBarItem(buttons[it + (buttonsSize / 2)])
+                    repeat(buttonsSize / 2) {
+                        BottomNavBarItem(buttons[it])
+                    }
+                    Spacer(modifier = Modifier.size(fabSize))
+                    repeat(buttonsSize / 2) {
+                        BottomNavBarItem(buttons[it + (buttonsSize / 2)])
+                    }
                 }
             }
+            LargeFloatingActionButton(
+                modifier = Modifier
+                    .size(fabSize)
+                    .align(Alignment.TopCenter),
+                onClick = { fabOnClick() },
+                shape = CircleShape,
+                containerColor = fabColor,
+                elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(defaultElevation = 0.dp)
+            ) {
+                Icon(
+                    painter = fabImage,
+                    contentDescription = fabImageDescription,
+                    tint = Color.White,
+                    modifier = Modifier.size(fabIconSize)
+                )
+            }
         }
-        LargeFloatingActionButton(
-            modifier = Modifier
-                .size(fabSize)
-                .align(Alignment.TopCenter),
-            onClick = { fabOnClick() },
-            shape = CircleShape,
-            containerColor = fabColor,
-            elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(defaultElevation = 0.dp)
-        ) {
-            Icon(
-                painter = fabImage,
-                contentDescription = fabImageDescription,
-                tint = Color.White,
-                modifier = Modifier.size(fabIconSize)
+        Spacer(
+            Modifier.windowInsetsBottomHeight(
+                WindowInsets.systemBars
             )
-        }
+                .fillMaxWidth()
+                .background(Color.White)
+        )
     }
 }

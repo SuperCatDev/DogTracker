@@ -1,7 +1,14 @@
 package com.sc.dtracker.ui.screens
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Text
@@ -65,13 +72,16 @@ object Settings : StableTab {
 
     @Composable
     override fun Content() {
-        Column(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .fillMaxSize()
+        ) {
             Text(
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally),
                 text = "Settings"
             )
-
         }
     }
 }
