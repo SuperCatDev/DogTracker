@@ -18,10 +18,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFloatingActionButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.Alignment
@@ -43,8 +45,8 @@ data class BottomNavBarItem(
 @Composable
 fun BottomNavBarItem(
     itemData: BottomNavBarItem,
-    selectedColor: Color = Color(0xFF7980FF),
-    nonSelectedColor: Color = Color(0xFF464D61).copy(alpha = 0.7f),
+    selectedColor: Color = MaterialTheme.colorScheme.secondary,
+    nonSelectedColor: Color = Color(0xFF60687E).copy(alpha = 0.7f),
     iconSize: Dp = 24.dp
 ) {
     IconButton(onClick = { itemData.onClick() }) {
@@ -62,12 +64,13 @@ fun BottomNavBarItem(
 @Composable
 fun BottomNavBar(
     barHeight: Dp = 60.dp,
-    fabColor: Color = Color(0xFF7980FF),
+    fabColor: Color = MaterialTheme.colorScheme.secondary,
     fabSize: Dp = 64.dp,
     fabIconSize: Dp = 32.dp,
     cardTopCornerSize: Dp = 24.dp,
     cardElevation: Dp = 8.dp,
     fabImage: Painter,
+    fabImageColor: Color =  MaterialTheme.colorScheme.onSecondary,
     fabImageDescription: String = "",
     buttons: ImmutableList<BottomNavBarItem>,
     fabOnClick: () -> Unit = {}
@@ -84,7 +87,7 @@ fun BottomNavBar(
                     .fillMaxWidth()
                     .height(barHeight)
                     .align(Alignment.BottomCenter),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
                 elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
                 shape = RoundedCornerShape(
                     topStart = cardTopCornerSize,
@@ -122,7 +125,7 @@ fun BottomNavBar(
                 Icon(
                     painter = fabImage,
                     contentDescription = fabImageDescription,
-                    tint = Color.White,
+                    tint = fabImageColor,
                     modifier = Modifier.size(fabIconSize)
                 )
             }
@@ -132,7 +135,7 @@ fun BottomNavBar(
                 WindowInsets.systemBars
             )
                 .fillMaxWidth()
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.primaryContainer)
         )
     }
 }
