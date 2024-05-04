@@ -12,6 +12,7 @@ voyager = "1.0.0"
 koin = "3.5.6"
 material = "1.6.6"
 immutable = "0.3.7"
+ymaps-lite = "4.6.1-lite"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -39,6 +40,7 @@ koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin" }
 koin-core = { module = "io.insert-koin:koin-core-coroutines" }
 koin-android = { module = "io.insert-koin:koin-android" }
 koin-compose = { module = "io.insert-koin:koin-androidx-compose" }
+yandex-maps-lite = { module = "com.yandex.android:maps.mobile", version.ref = "ymaps-lite" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
