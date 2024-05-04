@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -24,7 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
@@ -64,7 +61,7 @@ fun BottomNavBar(
     fabIconSize: Dp = 32.dp,
     cardTopCornerSize: Dp = 24.dp,
     cardElevation: Dp = 8.dp,
-    fabImageVector: ImageVector = Icons.Default.Add,
+    fabImage: Painter,
     fabImageDescription: String = "",
     buttons: ImmutableList<BottomNavBarItem>,
     fabOnClick: () -> Unit = {}
@@ -115,7 +112,7 @@ fun BottomNavBar(
             elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(defaultElevation = 0.dp)
         ) {
             Icon(
-                imageVector = fabImageVector,
+                painter = fabImage,
                 contentDescription = fabImageDescription,
                 tint = Color.White,
                 modifier = Modifier.size(fabIconSize)

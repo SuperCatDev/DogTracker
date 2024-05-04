@@ -1,15 +1,19 @@
 package com.sc.dtracker.ui
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import cafe.adriel.voyager.navigator.tab.CurrentTab
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.TabNavigator
+import com.sc.dtracker.R
 import com.sc.dtracker.ui.screens.MapScreen
 import com.sc.dtracker.ui.screens.Settings
 import com.sc.dtracker.ui.screens.StableTab
@@ -28,15 +32,26 @@ fun BaseScreen(modifier: Modifier = Modifier) {
                 }
             },
             bottomBar = {
-                val context = LocalContext.current
                 val buttons = persistentListOf(
                     tabBottomBarItem(MapScreen),
                     tabBottomBarItem(Settings)
                 )
 
-                BottomNavBar(buttons = buttons, fabOnClick = {
-                    Toast.makeText(context, "FAB clicked", Toast.LENGTH_SHORT).show()
-                })
+                var fabClicked by remember {
+                    mutableStateOf(false)
+                }
+
+                BottomNavBar(
+                    buttons = buttons,
+                    fabImage = if (fabClicked) {
+                        painterResource(R.drawable.record_button_stop)
+                    } else {
+                        painterResource(R.drawable.record_button_start)
+                    },
+                    fabOnClick = {
+                        fabClicked = fabClicked.not()
+                    }
+                )
             },
         )
     }

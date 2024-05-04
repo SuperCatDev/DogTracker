@@ -3,7 +3,6 @@ package com.sc.dtracker.ui.screens
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -12,12 +11,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.res.painterResource
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
+import com.sc.dtracker.R
 import com.sc.dtracker.features.map.ui.MapView
 
 @Stable
-interface StableTab: Tab
+interface StableTab : Tab
 
 @Stable
 object MapScreen : StableTab {
@@ -26,7 +27,7 @@ object MapScreen : StableTab {
         @Composable
         get() {
             val title = "Map screen"
-            val icon = rememberVectorPainter(Icons.Default.Home)
+            val icon = painterResource(R.drawable.map_screen_icon)
 
             return remember {
                 TabOptions(
