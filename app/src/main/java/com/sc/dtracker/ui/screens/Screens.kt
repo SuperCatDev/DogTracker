@@ -1,14 +1,10 @@
 package com.sc.dtracker.ui.screens
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Text
@@ -22,7 +18,7 @@ import androidx.compose.ui.res.painterResource
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import com.sc.dtracker.R
-import com.sc.dtracker.features.map.ui.MapView
+import com.sc.dtracker.features.map.ui.MapComposeView
 
 @Stable
 interface StableTab : Tab
@@ -47,7 +43,7 @@ object MapScreen : StableTab {
 
     @Composable
     override fun Content() {
-        MapView()
+        MapComposeView()
     }
 }
 

@@ -1,6 +1,17 @@
+import org.jetbrains.kotlin.gradle.plugin.extraProperties
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
+}
+
+fun getMapkitApiKey(): String {
+    val properties = Properties()
+    project.file("../local.properties").inputStream().let {
+        properties.load(it)
+    }
+    return properties.getProperty("MAPKIT_API_KEY", "")
 }
 
 android {
@@ -18,6 +29,7 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        buildConfigField("String", "MAPKIT_API_KEY", getMapkitApiKey())
     }
 
     buildTypes {
@@ -71,6 +83,7 @@ dependencies {
     implementation(libs.voyager.navigator)
     implementation(libs.voyager.transitions)
     implementation(libs.voyager.screen.model)
+    implementation(libs.yandex.maps.lite)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
