@@ -9,22 +9,27 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import cafe.adriel.voyager.navigator.tab.CurrentTab
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.TabNavigator
 import com.sc.dtracker.R
+import com.sc.dtracker.features.location.ui.LocationLauncher
 import com.sc.dtracker.ui.screens.MapScreen
 import com.sc.dtracker.ui.screens.Settings
 import com.sc.dtracker.ui.screens.StableTab
 import com.sc.dtracker.ui.views.BottomNavBar
 import com.sc.dtracker.ui.views.BottomNavBarItem
 import kotlinx.collections.immutable.persistentListOf
+import org.koin.compose.getKoin
 
 
 @Composable
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 fun BaseScreen(modifier: Modifier = Modifier) {
+
+    val locationLauncher: LocationLauncher = getKoin().get()
 
     TabNavigator(MapScreen) {
         Scaffold(
@@ -41,19 +46,27 @@ fun BaseScreen(modifier: Modifier = Modifier) {
                     tabBottomBarItem(Settings)
                 )
 
-                var fabClicked by remember {
-                    mutableStateOf(false)
+                val context = LocalContext.current
+
+                var locationRecordStarted by remember {
+                    mutableStateOf(locationLauncher.isStarted(context))
                 }
 
                 BottomNavBar(
                     buttons = buttons,
-                    fabImage = if (fabClicked) {
+                    fabImage = if (locationRecordStarted) {
                         painterResource(R.drawable.record_button_stop)
                     } else {
                         painterResource(R.drawable.record_button_start)
                     },
                     fabOnClick = {
-                        fabClicked = fabClicked.not()
+                        if (locationRecordStarted) {
+                            locationLauncher.stop(context)
+                        } else {
+                            locationLauncher.start(context)
+                        }
+
+                        locationRecordStarted = locationRecordStarted.not()
                     }
                 )
             },

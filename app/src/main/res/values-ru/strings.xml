@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Трекер прогулок</string>
+    <string name="location_channel_name">Старт маршрута</string>
+    <string name="location_notification_title">Идет запись маршрута</string>
+</resources>

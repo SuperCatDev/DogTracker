@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Dog Tracker</string>
+    <string name="location_channel_name">Tracking notification</string>
+    <string name="location_notification_title">Tracking in progress</string>
 </resources>

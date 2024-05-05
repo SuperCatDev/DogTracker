@@ -1,5 +1,7 @@
 package com.sc.dtracker
 
+import android.Manifest
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -8,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.core.app.ActivityCompat
 import com.sc.dtracker.features.map.ui.MapViewContainer
 import com.sc.dtracker.features.map.ui.MapViewHost
 import com.sc.dtracker.ui.BaseScreen
@@ -25,6 +28,28 @@ class MainActivity : ComponentActivity(), MapViewHost {
         super.onCreate(savedInstanceState)
         MapKitFactory.initialize(this)
         enableEdgeToEdge()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(
+                    Manifest.permission.POST_NOTIFICATIONS,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                ),
+                PERMISSION_REQUEST_CODE,
+            )
+        } else {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                ),
+                PERMISSION_REQUEST_CODE,
+            )
+        }
+
         setContent {
             DogTrackerTheme(dynamicColor = false) {
                 Surface(
@@ -52,5 +77,9 @@ class MainActivity : ComponentActivity(), MapViewHost {
 
     override fun provideMapViewContainer(): MapViewContainer {
         return mapViewContainer
+    }
+
+    private companion object {
+        const val PERMISSION_REQUEST_CODE = 2142
     }
 }
