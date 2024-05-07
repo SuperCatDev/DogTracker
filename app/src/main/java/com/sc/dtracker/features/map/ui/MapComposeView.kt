@@ -1,9 +1,11 @@
 package com.sc.dtracker.features.map.ui
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.sc.dtracker.features.location.domain.LocationChannelOutput
 import com.sc.dtracker.features.location.domain.models.LocationState
@@ -17,11 +19,11 @@ fun MapComposeView() {
 
     val locationOutput: LocationChannelOutput = getKoin().get()
     val locationState = locationOutput.observeLocationState()
-        // todo use last location
-        .collectAsState(initial = LocationState.Value(MyLocation(0.0, 0.0)))
+        .collectAsState(initial = null)
 
     AndroidView(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
+            .padding(bottom = 70.dp),
         factory = { context ->
             (context as MapViewHost).provideMapViewContainer().getView()
         },
@@ -38,6 +40,7 @@ fun MapComposeView() {
                         )
                     )
                 }
+                null -> {}
             }
         },
     )

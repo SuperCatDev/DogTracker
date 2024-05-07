@@ -22,7 +22,7 @@ class MapViewContainer(context: Context) {
     }
 
     fun onCreate() {
-        val map = mapView.map
+        /*val map = mapView.map
         map.move(
             CameraPosition(
                 Point(55.751225, 37.629540),
@@ -30,7 +30,7 @@ class MapViewContainer(context: Context) {
                 /* azimuth = */ 150.0f,
                 /* tilt = */ 30.0f
             )
-        )
+        )*/
     }
 
     fun onStart() {
