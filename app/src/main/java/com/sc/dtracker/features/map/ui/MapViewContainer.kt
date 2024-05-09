@@ -1,6 +1,7 @@
 package com.sc.dtracker.features.map.ui
 
 import android.content.Context
+import com.sc.dtracker.features.location.domain.models.MyLocation
 import com.sc.dtracker.ui.ext.lazyUnsafe
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.CameraPosition
@@ -22,15 +23,18 @@ class MapViewContainer(context: Context) {
     }
 
     fun onCreate() {
-        /*val map = mapView.map
-        map.move(
+
+    }
+
+    fun moveToLocation(location: MyLocation) {
+        mapView.map.move(
             CameraPosition(
-                Point(55.751225, 37.629540),
+                Point(location.latitude, location.longitude),
                 /* zoom = */ 17.0f,
                 /* azimuth = */ 150.0f,
                 /* tilt = */ 30.0f
             )
-        )*/
+        )
     }
 
     fun onStart() {

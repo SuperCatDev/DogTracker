@@ -18,7 +18,7 @@ class LocationStorageImpl(
         }
     }
 
-    override suspend fun getLastLocation(): MyLocation {
+    override suspend fun getLastLocation(defaultLocation: MyLocation?): MyLocation? {
         val locationFromCache = try {
             val settings = dataStore.data.first()
             settings[LAST_LOCATION_KEY]?.locationFromSerializedString()
@@ -27,7 +27,7 @@ class LocationStorageImpl(
             null
         }
 
-        return locationFromCache ?: MyLocation(0.0, 0.0)
+        return locationFromCache ?: defaultLocation
     }
 
     private fun MyLocation.toSerializedString(): String {

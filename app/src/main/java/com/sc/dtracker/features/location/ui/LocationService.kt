@@ -4,6 +4,7 @@ import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import android.util.Log
+import com.sc.dtracker.features.location.data.LocationStorage
 import com.sc.dtracker.features.location.domain.LocationChannelInput
 import com.sc.dtracker.features.location.domain.LocationClient
 import com.sc.dtracker.features.location.domain.models.LocationState
@@ -24,6 +25,7 @@ class LocationService : Service() {
     private val notificationController: LocationNotificationController by inject()
     private val locationClient: LocationClient by inject()
     private val locationInput: LocationChannelInput by inject()
+    private val locationStorage: LocationStorage by inject()
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -62,6 +64,10 @@ class LocationService : Service() {
                 locationInput.setCurrentLocationState(
                     LocationState.Value(it)
                 )
+                locationStorage.saveLastLocation(it)
+            }
+            .onCompletion {
+                locationInput.setCurrentLocationState(LocationState.NoActive)
             }
             .launchIn(serviceScope)
     }

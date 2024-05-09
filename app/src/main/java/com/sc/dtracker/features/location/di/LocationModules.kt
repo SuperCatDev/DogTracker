@@ -33,7 +33,7 @@ val locationDataModule = module {
 
 val locationDomainModule = module {
     single {
-        LocationChannelImpl(get())
+        LocationChannelImpl()
     } binds (arrayOf(LocationChannelOutput::class, LocationChannelInput::class))
 }
 

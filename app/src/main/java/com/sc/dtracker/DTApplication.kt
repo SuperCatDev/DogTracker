@@ -5,9 +5,9 @@ import com.sc.dtracker.features.location.di.locationDataModule
 import com.sc.dtracker.features.location.di.locationDomainModule
 import com.sc.dtracker.features.location.di.locationUiModule
 import com.sc.dtracker.features.location.ui.LocationNotificationController
+import com.sc.dtracker.features.map.di.mapDataModule
 import com.yandex.mapkit.MapKitFactory
 import org.koin.android.ext.android.get
-import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.GlobalContext.startKoin
@@ -30,6 +30,9 @@ class DTApplication : Application() {
             androidLogger()
             androidContext(this@DTApplication)
             modules(
+                // map feature
+                mapDataModule,
+                // location feature
                 locationDataModule,
                 locationDomainModule,
                 locationUiModule,
