@@ -3,6 +3,7 @@ package com.sc.dtracker.ui.screens
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
@@ -19,6 +20,7 @@ import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import com.sc.dtracker.R
 import com.sc.dtracker.features.map.ui.MapComposeView
+import com.sc.dtracker.ui.views.bottomNavBarHeight
 
 @Stable
 interface StableTab : Tab
@@ -71,6 +73,7 @@ object Settings : StableTab {
         Column(
             modifier = Modifier
                 .windowInsetsPadding(WindowInsets.statusBars)
+                .padding(bottom = bottomNavBarHeight)
                 .fillMaxSize()
         ) {
             Text(

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
@@ -18,13 +17,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,6 +32,8 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
+
+var bottomNavBarHeight: Dp = 0.dp
 
 @Stable
 data class BottomNavBarItem(
@@ -70,11 +71,15 @@ fun BottomNavBar(
     cardTopCornerSize: Dp = 24.dp,
     cardElevation: Dp = 8.dp,
     fabImage: Painter,
-    fabImageColor: Color =  MaterialTheme.colorScheme.onSecondary,
+    fabImageColor: Color = MaterialTheme.colorScheme.onSecondary,
     fabImageDescription: String = "",
     buttons: ImmutableList<BottomNavBarItem>,
     fabOnClick: () -> Unit = {}
 ) {
+
+    LaunchedEffect(barHeight) {
+        bottomNavBarHeight = barHeight
+    }
 
     Column {
         Box(
@@ -131,9 +136,10 @@ fun BottomNavBar(
             }
         }
         Spacer(
-            Modifier.windowInsetsBottomHeight(
-                WindowInsets.systemBars
-            )
+            Modifier
+                .windowInsetsBottomHeight(
+                    WindowInsets.systemBars
+                )
                 .fillMaxWidth()
                 .background(MaterialTheme.colorScheme.primaryContainer)
         )

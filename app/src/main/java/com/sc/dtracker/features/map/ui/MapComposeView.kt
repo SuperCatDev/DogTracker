@@ -5,11 +5,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.sc.dtracker.features.location.domain.LocationChannelOutput
 import com.sc.dtracker.features.location.domain.models.LocationState
-import com.sc.dtracker.features.location.domain.models.MyLocation
+import com.sc.dtracker.ui.views.bottomNavBarHeight
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.CameraPosition
 import org.koin.compose.getKoin
@@ -22,8 +21,9 @@ fun MapComposeView() {
         .collectAsState(initial = null)
 
     AndroidView(
-        modifier = Modifier.fillMaxSize()
-            .padding(bottom = 70.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = bottomNavBarHeight),
         factory = { context ->
             (context as MapViewHost).provideMapViewContainer().getView()
         },
