@@ -9,11 +9,16 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.sc.dtracker.features.location.domain.LocationChannelOutput
 import com.sc.dtracker.features.location.domain.models.LocationState
 import com.sc.dtracker.features.location.domain.models.MyLocation
 import com.sc.dtracker.features.map.data.MapStartLocationRepository
+import com.sc.dtracker.ui.views.bottomNavBarCornerHeight
 import com.sc.dtracker.ui.views.bottomNavBarHeight
 import org.koin.compose.getKoin
 
@@ -36,6 +41,10 @@ fun MapComposeView() {
         initialLocationState.value = mapStartLocationRepository.getAndConsume()
     }
 
+    // todo probably move to view update area
+    MoveMap(locationState.value, initialLocationState.value)
+    UpdateLogo(bottomNavBarCornerHeight)
+
     AndroidView(
         modifier = Modifier
             .fillMaxSize()
@@ -43,18 +52,39 @@ fun MapComposeView() {
         factory = { context ->
             context.asMapViewContainer().getView()
         },
-        update = { view ->
-            when (val value = locationState.value) {
-                is LocationState.Error -> {}
-                is LocationState.Value -> {
-                    view.context.asMapViewContainer().moveToLocation(value.location)
-                }
-                is LocationState.NoActive -> {
-                    initialLocationState.value?.let {
-                        view.context.asMapViewContainer().moveToLocation(it)
-                    }
-                }
-            }
-        },
     )
+}
+
+@Composable
+private fun MoveMap(
+    locationState: LocationState,
+    initialLocationState: MyLocation?
+) {
+    val ctx = LocalContext.current
+
+    when (locationState) {
+        is LocationState.Error -> {}
+        is LocationState.Value -> {
+            ctx.asMapViewContainer().moveToLocation(locationState.location)
+        }
+        is LocationState.NoActive -> {
+            initialLocationState?.let {
+                ctx.asMapViewContainer().moveToLocation(it)
+            }
+        }
+    }
+}
+
+@Composable
+private fun UpdateLogo(
+    bottomPadding: Dp,
+) {
+    val ctx = LocalContext.current
+    val density = LocalDensity.current
+
+    val rightPadding = 8.dp.value * density.density
+    val logoBottomPadding = (bottomPadding.value) * density.density
+
+    ctx.asMapViewContainer()
+        .setLogoAt(rightPadding.toInt(), logoBottomPadding.toInt())
 }

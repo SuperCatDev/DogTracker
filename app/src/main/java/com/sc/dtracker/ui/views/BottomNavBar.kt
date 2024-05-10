@@ -25,6 +25,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,7 +36,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
 
-var bottomNavBarHeight: Dp = 0.dp
+var bottomNavBarHeight: Dp by mutableStateOf(0.dp)
+var bottomNavBarCornerHeight: Dp by mutableStateOf(0.dp)
 
 @Stable
 data class BottomNavBarItem(
@@ -77,8 +81,12 @@ fun BottomNavBar(
     fabOnClick: () -> Unit = {}
 ) {
 
-    LaunchedEffect(barHeight) {
+    LaunchedEffect(barHeight, fabSize) {
         bottomNavBarHeight = barHeight
+    }
+
+    LaunchedEffect(fabSize) {
+        bottomNavBarCornerHeight = fabSize / 2
     }
 
     Column {

@@ -4,6 +4,10 @@ import android.content.Context
 import com.sc.dtracker.features.location.domain.models.MyLocation
 import com.sc.dtracker.ui.ext.lazyUnsafe
 import com.yandex.mapkit.geometry.Point
+import com.yandex.mapkit.logo.Alignment
+import com.yandex.mapkit.logo.HorizontalAlignment
+import com.yandex.mapkit.logo.Padding
+import com.yandex.mapkit.logo.VerticalAlignment
 import com.yandex.mapkit.map.CameraPosition
 import com.yandex.mapkit.mapview.MapView
 
@@ -15,7 +19,14 @@ interface MapViewHost {
 class MapViewContainer(context: Context) {
 
     private val mapView by lazyUnsafe {
-        MapView(context)
+        MapView(context).also {
+            it.map.logo.setAlignment(
+                Alignment(
+                    HorizontalAlignment.RIGHT,
+                    VerticalAlignment.BOTTOM
+                )
+            )
+        }
     }
 
     fun getView(): MapView {
@@ -24,6 +35,12 @@ class MapViewContainer(context: Context) {
 
     fun onCreate() {
 
+    }
+
+    fun setLogoAt(horizontalPx: Int, verticalPx: Int) {
+        mapView.map.logo.setPadding(
+            Padding(horizontalPx, verticalPx)
+        )
     }
 
     fun moveToLocation(location: MyLocation) {
