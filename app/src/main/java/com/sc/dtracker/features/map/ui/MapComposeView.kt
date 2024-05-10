@@ -8,6 +8,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -20,6 +21,7 @@ import com.sc.dtracker.features.location.domain.models.MyLocation
 import com.sc.dtracker.features.map.data.MapStartLocationRepository
 import com.sc.dtracker.ui.views.bottomNavBarCornerHeight
 import com.sc.dtracker.ui.views.bottomNavBarHeight
+import kotlinx.coroutines.launch
 import org.koin.compose.getKoin
 
 private fun Context.asMapViewContainer() = (this as MapViewHost).provideMapViewContainer()
@@ -65,11 +67,16 @@ private fun MoveMap(
     when (locationState) {
         is LocationState.Error -> {}
         is LocationState.Value -> {
-            ctx.asMapViewContainer().moveToLocation(locationState.location)
+            ctx.asMapViewContainer().apply {
+               // moveToLocation(locationState.location, true)
+                rememberCoroutineScope().launch {
+                    addLocationMark(ctx, locationState.location)
+                }
+            }
         }
         is LocationState.NoActive -> {
             initialLocationState?.let {
-                ctx.asMapViewContainer().moveToLocation(it)
+                ctx.asMapViewContainer().moveToLocation(it, false)
             }
         }
     }
