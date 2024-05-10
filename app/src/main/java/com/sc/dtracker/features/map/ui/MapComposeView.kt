@@ -28,21 +28,11 @@ private fun Context.asMapViewContainer() = (this as MapViewHost).provideMapViewC
 fun MapComposeView() {
 
     val locationOutput: LocationChannelOutput = getKoin().get()
-    val mapStartLocationRepository: MapStartLocationRepository = getKoin().get()
-
     val locationState = locationOutput.observeLocationState()
         .collectAsState(initial = LocationState.NoActive)
 
-    val initialLocationState = remember {
-        mutableStateOf<MyLocation?>(null)
-    }
-
-    LaunchedEffect(key1 = Unit) {
-        initialLocationState.value = mapStartLocationRepository.getAndConsume()
-    }
-
     // todo probably move to view update area
-    MoveMap(locationState.value, initialLocationState.value)
+    MoveMap(locationState.value)
     UpdateLogo(bottomNavBarCornerHeight)
 
     AndroidView(
@@ -58,19 +48,30 @@ fun MapComposeView() {
 @Composable
 private fun MoveMap(
     locationState: LocationState,
-    initialLocationState: MyLocation?
 ) {
+    val mapStartLocationRepository: MapStartLocationRepository = getKoin().get()
+
+    val initialLocationState = remember {
+        mutableStateOf<MyLocation?>(null)
+    }
+
+    LaunchedEffect(key1 = Unit) {
+        initialLocationState.value = mapStartLocationRepository.getAndConsume()
+    }
+
     val ctx = LocalContext.current
 
     when (locationState) {
         is LocationState.Error -> {}
         is LocationState.Value -> {
-            ctx.asMapViewContainer().moveToLocation(locationState.location)
+            ctx.asMapViewContainer().moveToLocation(locationState.location, true)
         }
         is LocationState.NoActive -> {
-            initialLocationState?.let {
-                ctx.asMapViewContainer().moveToLocation(it)
+            initialLocationState.value?.let {
+                ctx.asMapViewContainer().moveToLocation(it, false)
             }
+
+            initialLocationState.value = null
         }
     }
 }
