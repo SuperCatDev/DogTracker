@@ -11,22 +11,29 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
+import com.sc.dtracker.features.location.yandex.YandexLocationLayer
 import com.sc.dtracker.features.map.ui.MapViewContainer
 import com.sc.dtracker.features.map.ui.MapViewHost
 import com.sc.dtracker.ui.BaseScreen
 import com.sc.dtracker.ui.ext.lazyUnsafe
 import com.sc.dtracker.ui.theme.DogTrackerTheme
 import com.yandex.mapkit.MapKitFactory
+import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity(), MapViewHost {
 
+    private val yandexLocationLayer: YandexLocationLayer by inject()
+
     private val mapViewContainer by lazyUnsafe {
-        MapViewContainer(this)
+        MapViewContainer(this, yandexLocationLayer)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         MapKitFactory.initialize(this)
+        yandexLocationLayer.initialize(this)
+
         enableEdgeToEdge()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -73,6 +80,11 @@ class MainActivity : ComponentActivity(), MapViewHost {
         MapKitFactory.getInstance().onStop()
         mapViewContainer.onStop()
         super.onStop()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        yandexLocationLayer.clear()
     }
 
     override fun provideMapViewContainer(): MapViewContainer {

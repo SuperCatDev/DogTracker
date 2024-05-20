@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import androidx.core.content.ContextCompat
 import com.sc.dtracker.R
 import com.sc.dtracker.features.location.domain.models.MyLocation
+import com.sc.dtracker.features.location.yandex.YandexLocationLayer
 import com.sc.dtracker.ui.ext.lazyUnsafe
 import com.yandex.mapkit.Animation
 import com.yandex.mapkit.geometry.Point
@@ -23,7 +24,7 @@ interface MapViewHost {
     fun provideMapViewContainer(): MapViewContainer
 }
 
-class MapViewContainer(context: Context) {
+class MapViewContainer(context: Context, yandexLocationLayer: YandexLocationLayer) {
 
     private val locationBitmap by lazyUnsafe {
         context.getBitmapFromVectorDrawable(R.drawable.baseline_my_location_24)
@@ -33,6 +34,7 @@ class MapViewContainer(context: Context) {
 
     private val mapView by lazyUnsafe {
         MapView(context).also {
+            yandexLocationLayer.attachToMapView(it)
             it.map.logo.setAlignment(
                 Alignment(
                     HorizontalAlignment.RIGHT,
@@ -50,7 +52,7 @@ class MapViewContainer(context: Context) {
     }
 
     fun setLogoAt(horizontalPx: Int, verticalPx: Int) {
-        mapView.map.logo.setPadding(
+        mapView.mapWindow.map.logo.setPadding(
             Padding(horizontalPx, verticalPx)
         )
     }
@@ -61,7 +63,7 @@ class MapViewContainer(context: Context) {
     }
 
     private fun moveMap(location: MyLocation, withAnimation: Boolean) {
-        if (withAnimation) {
+       /* if (withAnimation) {
             mapView.map.move(
                 CameraPosition(
                     Point(location.latitude, location.longitude),
@@ -81,7 +83,7 @@ class MapViewContainer(context: Context) {
                     /* tilt = */ 30.0f
                 )
             )
-        }
+        }*/
     }
 
     private fun movePlacemark(location: MyLocation) {
@@ -91,7 +93,7 @@ class MapViewContainer(context: Context) {
                 location.longitude,
             )
         } ?: run {
-            mapView.map.mapObjects.addPlacemark().apply {
+            mapView.mapWindow.map.mapObjects.addPlacemark().apply {
                 geometry = Point(
                     location.latitude,
                     location.longitude,
@@ -121,6 +123,7 @@ class MapViewContainer(context: Context) {
             Bitmap.Config.ARGB_8888
         )
         val canvas = Canvas(bitmap)
+        canvas.ro
         drawable.setBounds(0, 0, canvas.width, canvas.height)
         drawable.draw(canvas)
 

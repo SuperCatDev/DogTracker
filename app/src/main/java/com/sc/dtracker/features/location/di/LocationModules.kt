@@ -18,6 +18,7 @@ import com.sc.dtracker.features.location.ui.LocationLauncher
 import com.sc.dtracker.features.location.ui.LocationLauncherImpl
 import com.sc.dtracker.features.location.ui.LocationNotificationController
 import com.sc.dtracker.features.location.ui.LocationNotificationControllerImpl
+import com.sc.dtracker.features.location.yandex.YandexLocationLayer
 import org.koin.dsl.binds
 import org.koin.dsl.module
 
@@ -35,6 +36,10 @@ val locationDomainModule = module {
     single {
         LocationChannelImpl()
     } binds (arrayOf(LocationChannelOutput::class, LocationChannelInput::class))
+
+    single<YandexLocationLayer> {
+        YandexLocationLayer()
+    }
 }
 
 val locationUiModule = module {
