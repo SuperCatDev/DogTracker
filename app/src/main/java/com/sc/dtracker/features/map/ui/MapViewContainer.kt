@@ -33,10 +33,19 @@ class MapViewContainer(context: Context) {
 
     private val mapView by lazyUnsafe {
         MapView(context).also {
-            it.map.logo.setAlignment(
+            it.mapWindow.map.logo.setAlignment(
                 Alignment(
                     HorizontalAlignment.RIGHT,
                     VerticalAlignment.BOTTOM
+                )
+            )
+
+            it.mapWindow.map.move(
+                CameraPosition(
+                    Point(0.0, 0.0),
+                    /* zoom = */ 17.0f,
+                    /* azimuth = */ 150.0f,
+                    /* tilt = */ 30.0f
                 )
             )
         }
@@ -62,12 +71,12 @@ class MapViewContainer(context: Context) {
 
     private fun moveMap(location: MyLocation, withAnimation: Boolean) {
         if (withAnimation) {
-            mapView.map.move(
+            mapView.mapWindow.map.move(
                 CameraPosition(
                     Point(location.latitude, location.longitude),
-                    /* zoom = */ 17.0f,
-                    /* azimuth = */ 150.0f,
-                    /* tilt = */ 30.0f
+                    /* zoom = */ mapView.mapWindow.map.cameraPosition.zoom,
+                    /* azimuth = */ mapView.mapWindow.map.cameraPosition.azimuth,
+                    /* tilt = */ mapView.mapWindow.map.cameraPosition.tilt
                 ),
                 Animation(Animation.Type.LINEAR, 1f),
                 null
@@ -76,9 +85,9 @@ class MapViewContainer(context: Context) {
             mapView.map.move(
                 CameraPosition(
                     Point(location.latitude, location.longitude),
-                    /* zoom = */ 17.0f,
-                    /* azimuth = */ 150.0f,
-                    /* tilt = */ 30.0f
+                    /* zoom = */ mapView.mapWindow.map.cameraPosition.zoom,
+                    /* azimuth = */ mapView.mapWindow.map.cameraPosition.azimuth,
+                    /* tilt = */ mapView.mapWindow.map.cameraPosition.tilt
                 )
             )
         }

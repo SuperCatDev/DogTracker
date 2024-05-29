@@ -10,6 +10,7 @@ import com.google.android.gms.location.LocationServices
 import com.sc.dtracker.features.location.data.DefaultLocationClient
 import com.sc.dtracker.features.location.data.LocationStorage
 import com.sc.dtracker.features.location.data.LocationStorageImpl
+import com.sc.dtracker.features.location.data.SensorDataRepository
 import com.sc.dtracker.features.location.domain.LocationChannelImpl
 import com.sc.dtracker.features.location.domain.LocationChannelInput
 import com.sc.dtracker.features.location.domain.LocationChannelOutput
@@ -29,6 +30,7 @@ val locationDataModule = module {
     factory<FusedLocationProviderClient> {
         LocationServices.getFusedLocationProviderClient(get<Context>())
     }
+    single<SensorDataRepository> { SensorDataRepository(get())  }
 }
 
 val locationDomainModule = module {
