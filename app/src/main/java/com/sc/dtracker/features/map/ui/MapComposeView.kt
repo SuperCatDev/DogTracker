@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -14,11 +15,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 import com.sc.dtracker.features.location.data.SensorDataRepository
 import com.sc.dtracker.features.location.domain.LocationChannelOutput
+import com.sc.dtracker.features.location.domain.LocationController
 import com.sc.dtracker.features.location.domain.models.LocationState
 import com.sc.dtracker.features.location.domain.models.MyLocation
 import com.sc.dtracker.features.map.data.MapStartLocationRepository
@@ -26,11 +32,15 @@ import com.sc.dtracker.ui.views.bottomNavBarCornerHeight
 import com.sc.dtracker.ui.views.bottomNavBarHeight
 import org.koin.compose.getKoin
 
+private const val MAP_VIEW_FROM_KEY = "MapComposeView"
+
 private fun Context.asMapViewContainer() = (this as MapViewHost).provideMapViewContainer()
 
 @Composable
-fun MapComposeView() {
-
+fun MapComposeView(
+    lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
+) {
+    val locationController: LocationController = getKoin().get()
     val locationOutput: LocationChannelOutput = getKoin().get()
     val sensorDataRepository: SensorDataRepository = getKoin().get()
     val locationState = locationOutput.observeLocationState()
@@ -41,6 +51,31 @@ fun MapComposeView() {
     LaunchedEffect(sensorDataRepository) {
         sensorDataRepository.getAzimuthFlow().collect { newAzimuth ->
             azimuth = newAzimuth
+        }
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> {
+                    locationController.requestStart(MAP_VIEW_FROM_KEY)
+                }
+                Lifecycle.Event.ON_PAUSE -> {
+                    locationController.requestStop(MAP_VIEW_FROM_KEY)
+                }
+                Lifecycle.Event.ON_CREATE -> Unit
+                Lifecycle.Event.ON_START -> Unit
+                Lifecycle.Event.ON_STOP -> Unit
+                Lifecycle.Event.ON_DESTROY -> Unit
+                Lifecycle.Event.ON_ANY -> Unit
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            locationController.requestStop(MAP_VIEW_FROM_KEY)
         }
     }
 

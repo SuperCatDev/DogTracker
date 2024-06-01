@@ -15,7 +15,7 @@ import cafe.adriel.voyager.navigator.tab.CurrentTab
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.TabNavigator
 import com.sc.dtracker.R
-import com.sc.dtracker.features.location.ui.LocationLauncher
+import com.sc.dtracker.features.location.ui.RecordLocationLauncher
 import com.sc.dtracker.ui.screens.MapScreen
 import com.sc.dtracker.ui.screens.Settings
 import com.sc.dtracker.ui.screens.StableTab
@@ -29,7 +29,7 @@ import org.koin.compose.getKoin
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 fun BaseScreen(modifier: Modifier = Modifier) {
 
-    val locationLauncher: LocationLauncher = getKoin().get()
+    val recordLocationLauncher: RecordLocationLauncher = getKoin().get()
 
     TabNavigator(MapScreen) {
         Scaffold(
@@ -49,7 +49,7 @@ fun BaseScreen(modifier: Modifier = Modifier) {
                 val context = LocalContext.current
 
                 var locationRecordStarted by remember {
-                    mutableStateOf(locationLauncher.isStarted(context))
+                    mutableStateOf(recordLocationLauncher.isStarted(context))
                 }
 
                 BottomNavBar(
@@ -61,9 +61,9 @@ fun BaseScreen(modifier: Modifier = Modifier) {
                     },
                     fabOnClick = {
                         if (locationRecordStarted) {
-                            locationLauncher.stop(context)
+                            recordLocationLauncher.stop(context)
                         } else {
-                            locationLauncher.start(context)
+                            recordLocationLauncher.start(context)
                         }
 
                         locationRecordStarted = locationRecordStarted.not()

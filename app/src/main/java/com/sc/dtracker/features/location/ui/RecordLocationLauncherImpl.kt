@@ -3,9 +3,10 @@ package com.sc.dtracker.features.location.ui
 import android.content.Context
 import android.content.Intent
 
-class LocationLauncherImpl : LocationLauncher {
+class RecordLocationLauncherImpl : RecordLocationLauncher {
 
     override fun isStarted(context: Context): Boolean {
+        // todo remove service flag, migrate to some domain class that actually records the trail!
         return LocationService.isLaunched
     }
 

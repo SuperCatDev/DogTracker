@@ -3,29 +3,13 @@ package com.sc.dtracker.features.location.ui
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
-import android.util.Log
-import com.sc.dtracker.features.location.data.LocationStorage
-import com.sc.dtracker.features.location.domain.LocationChannelInput
-import com.sc.dtracker.features.location.domain.LocationClient
-import com.sc.dtracker.features.location.domain.models.LocationState
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
+import com.sc.dtracker.features.location.domain.LocationController
 import org.koin.android.ext.android.inject
 
 class LocationService : Service() {
 
-    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val locationController: LocationController by inject()
     private val notificationController: LocationNotificationController by inject()
-    private val locationClient: LocationClient by inject()
-    private val locationInput: LocationChannelInput by inject()
-    private val locationStorage: LocationStorage by inject()
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -42,34 +26,8 @@ class LocationService : Service() {
 
     private fun start() {
         startForeground(1, notificationController.buildServiceNotification(this))
-
-        locationClient.getLocationUpdates(2000)
-            .onStart {
-                isLaunched = true
-            }
-            .onCompletion {
-                isLaunched = false
-            }
-            .catch {
-                when {
-                    it is LocationClient.LocationException -> {
-                        locationInput.setCurrentLocationState(
-                            LocationState.Error(it)
-                        )
-                    }
-                    else -> Log.e("LocationService", "Error: ${it.stackTraceToString()}")
-                }
-            }
-            .onEach {
-                locationInput.setCurrentLocationState(
-                    LocationState.Value(it)
-                )
-                locationStorage.saveLastLocation(it)
-            }
-            .onCompletion {
-                locationInput.setCurrentLocationState(LocationState.NoActive)
-            }
-            .launchIn(serviceScope)
+        locationController.requestStart(FROM_KEY)
+        isLaunched = true
     }
 
     private fun stop() {
@@ -79,13 +37,15 @@ class LocationService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        serviceScope.cancel()
+        locationController.requestStop(FROM_KEY)
+        isLaunched = false
     }
 
     companion object {
         var isLaunched: Boolean = false
             private set
 
+        const val FROM_KEY = "LocationService"
         const val ACTION_START = "ACTION_START"
         const val ACTION_STOP = "ACTION_STOP"
     }

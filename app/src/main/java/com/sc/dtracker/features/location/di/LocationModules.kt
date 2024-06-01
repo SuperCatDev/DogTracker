@@ -15,10 +15,12 @@ import com.sc.dtracker.features.location.domain.LocationChannelImpl
 import com.sc.dtracker.features.location.domain.LocationChannelInput
 import com.sc.dtracker.features.location.domain.LocationChannelOutput
 import com.sc.dtracker.features.location.domain.LocationClient
-import com.sc.dtracker.features.location.ui.LocationLauncher
-import com.sc.dtracker.features.location.ui.LocationLauncherImpl
+import com.sc.dtracker.features.location.domain.LocationController
+import com.sc.dtracker.features.location.domain.LocationControllerImpl
 import com.sc.dtracker.features.location.ui.LocationNotificationController
 import com.sc.dtracker.features.location.ui.LocationNotificationControllerImpl
+import com.sc.dtracker.features.location.ui.RecordLocationLauncher
+import com.sc.dtracker.features.location.ui.RecordLocationLauncherImpl
 import org.koin.dsl.binds
 import org.koin.dsl.module
 
@@ -30,16 +32,18 @@ val locationDataModule = module {
     factory<FusedLocationProviderClient> {
         LocationServices.getFusedLocationProviderClient(get<Context>())
     }
-    single<SensorDataRepository> { SensorDataRepository(get())  }
+    single<SensorDataRepository> { SensorDataRepository(get()) }
 }
 
 val locationDomainModule = module {
     single {
         LocationChannelImpl()
     } binds (arrayOf(LocationChannelOutput::class, LocationChannelInput::class))
+
+    single<LocationController> { LocationControllerImpl(get(), get(), get()) }
 }
 
 val locationUiModule = module {
     single<LocationNotificationController> { LocationNotificationControllerImpl() }
-    single<LocationLauncher> { LocationLauncherImpl() }
+    single<RecordLocationLauncher> { RecordLocationLauncherImpl() }
 }
