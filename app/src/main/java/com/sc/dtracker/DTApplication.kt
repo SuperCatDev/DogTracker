@@ -1,6 +1,7 @@
 package com.sc.dtracker
 
 import android.app.Application
+import com.sc.dtracker.common.context.AppContextHolder
 import com.sc.dtracker.di.featureModules
 import com.sc.dtracker.features.location.ui.LocationNotificationController
 import com.yandex.mapkit.MapKitFactory
@@ -13,6 +14,7 @@ class DTApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        AppContextHolder.context = this
 
         startDI()
 

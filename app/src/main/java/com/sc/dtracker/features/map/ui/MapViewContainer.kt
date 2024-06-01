@@ -1,10 +1,11 @@
 package com.sc.dtracker.features.map.ui
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import androidx.core.content.ContextCompat
+import android.view.View
+import android.widget.FrameLayout
+import android.widget.ImageView
 import com.sc.dtracker.R
+import com.sc.dtracker.common.ext.android.asDp
 import com.sc.dtracker.features.location.domain.models.MyLocation
 import com.sc.dtracker.ui.ext.lazyUnsafe
 import com.yandex.mapkit.Animation
@@ -14,9 +15,11 @@ import com.yandex.mapkit.logo.HorizontalAlignment
 import com.yandex.mapkit.logo.Padding
 import com.yandex.mapkit.logo.VerticalAlignment
 import com.yandex.mapkit.map.CameraPosition
+import com.yandex.mapkit.map.IconStyle
 import com.yandex.mapkit.map.PlacemarkMapObject
+import com.yandex.mapkit.map.RotationType
 import com.yandex.mapkit.mapview.MapView
-import com.yandex.runtime.image.ImageProvider
+import com.yandex.runtime.ui_view.ViewProvider
 
 interface MapViewHost {
 
@@ -24,9 +27,16 @@ interface MapViewHost {
 }
 
 class MapViewContainer(context: Context) {
-
-    private val locationBitmap by lazyUnsafe {
-        context.getBitmapFromVectorDrawable(R.drawable.baseline_my_location_24)
+    private val locationView by lazyUnsafe {
+        ImageView(context)
+            .also {
+                val size = 25.asDp()
+                it.layoutParams = FrameLayout.LayoutParams(
+                    size,
+                    size,
+                )
+                it.setImageResource(R.drawable.my_location_icon)
+            }
     }
 
     private var locationPlacemark: PlacemarkMapObject? = null
@@ -51,7 +61,7 @@ class MapViewContainer(context: Context) {
         }
     }
 
-    fun getView(): MapView {
+    fun getView(): View {
         return mapView
     }
 
@@ -59,14 +69,14 @@ class MapViewContainer(context: Context) {
     }
 
     fun setLogoAt(horizontalPx: Int, verticalPx: Int) {
-        mapView.map.logo.setPadding(
+        mapView.mapWindow.map.logo.setPadding(
             Padding(horizontalPx, verticalPx)
         )
     }
 
-    fun moveToLocation(location: MyLocation, withAnimation: Boolean) {
+    fun moveToLocation(location: MyLocation, azimuth: Float, withAnimation: Boolean) {
         moveMap(location, withAnimation)
-        movePlacemark(location)
+        movePlacemark(location, azimuth)
     }
 
     private fun moveMap(location: MyLocation, withAnimation: Boolean) {
@@ -93,21 +103,27 @@ class MapViewContainer(context: Context) {
         }
     }
 
-    private fun movePlacemark(location: MyLocation) {
+    private fun movePlacemark(location: MyLocation, azimuth: Float) {
         locationPlacemark?.let {
             it.geometry = Point(
                 location.latitude,
                 location.longitude,
             )
+            it.direction = azimuth
         } ?: run {
-            mapView.map.mapObjects.addPlacemark().apply {
+            mapView.mapWindow.map.mapObjects.addPlacemark().apply {
+                setView(
+                    ViewProvider(locationView, true),
+                    IconStyle()
+                        .apply {
+                            rotationType = RotationType.ROTATE
+                        }
+                )
                 geometry = Point(
                     location.latitude,
                     location.longitude,
                 )
-                setIcon(
-                    ImageProvider.fromBitmap(locationBitmap)
-                )
+                direction = azimuth
                 locationPlacemark = this
             }
         }
@@ -119,20 +135,5 @@ class MapViewContainer(context: Context) {
 
     fun onStop() {
         mapView.onStop()
-    }
-
-    private fun Context.getBitmapFromVectorDrawable(drawableId: Int): Bitmap? {
-        val drawable = ContextCompat.getDrawable(this, drawableId) ?: return null
-
-        val bitmap = Bitmap.createBitmap(
-            drawable.intrinsicWidth,
-            drawable.intrinsicHeight,
-            Bitmap.Config.ARGB_8888
-        )
-        val canvas = Canvas(bitmap)
-        drawable.setBounds(0, 0, canvas.width, canvas.height)
-        drawable.draw(canvas)
-
-        return bitmap
     }
 }

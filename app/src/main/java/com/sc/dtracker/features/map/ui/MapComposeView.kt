@@ -1,7 +1,6 @@
 package com.sc.dtracker.features.map.ui
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -25,8 +24,6 @@ import com.sc.dtracker.features.location.domain.models.MyLocation
 import com.sc.dtracker.features.map.data.MapStartLocationRepository
 import com.sc.dtracker.ui.views.bottomNavBarCornerHeight
 import com.sc.dtracker.ui.views.bottomNavBarHeight
-import com.yandex.mapkit.Animation
-import com.yandex.mapkit.map.CameraPosition
 import org.koin.compose.getKoin
 
 private fun Context.asMapViewContainer() = (this as MapViewHost).provideMapViewContainer()
@@ -48,7 +45,7 @@ fun MapComposeView() {
     }
 
     // todo probably move to view update area
-    MoveMap(locationState.value)
+    MoveMap(locationState.value, azimuth)
     UpdateLogo(bottomNavBarCornerHeight)
 
     AndroidView(
@@ -59,20 +56,6 @@ fun MapComposeView() {
             context.asMapViewContainer().getView()
         },
         update = {
-            val current = it.mapWindow.map.cameraPosition
-
-            Log.e("VVV", "azimuth: $azimuth")
-
-            it.mapWindow.map.move(
-                CameraPosition(
-                    current.target,
-                    /* zoom = */  current.zoom,
-                    /* azimuth = */azimuth,
-                    /* tilt = */  current.tilt
-                ),
-                Animation(Animation.Type.LINEAR, 1f),
-                null
-            )
         }
     )
 }
@@ -80,6 +63,7 @@ fun MapComposeView() {
 @Composable
 private fun MoveMap(
     locationState: LocationState,
+    azimuth: Float
 ) {
     val mapStartLocationRepository: MapStartLocationRepository = getKoin().get()
 
@@ -96,11 +80,11 @@ private fun MoveMap(
     when (locationState) {
         is LocationState.Error -> {}
         is LocationState.Value -> {
-            ctx.asMapViewContainer().moveToLocation(locationState.location, true)
+            ctx.asMapViewContainer().moveToLocation(locationState.location, azimuth, true)
         }
         is LocationState.NoActive -> {
             initialLocationState.value?.let {
-                ctx.asMapViewContainer().moveToLocation(it, false)
+                ctx.asMapViewContainer().moveToLocation(it, azimuth, false)
             }
 
             initialLocationState.value = null
