@@ -7,4 +7,6 @@
     <string name="no_location_permission_title">Необходим доступ к местоположению</string>
     <string name="no_location_permission_text">Получение вашего местоположения является ключевым функционалом этот приложения. Мы не отправляем его третьим лицам и используем только для работы карты</string>
     <string name="no_location_permission_go_settings">Перейти в настройки</string>
+
+    <string name="icon_description_jump_to_location">Перейти к моему местоположению</string>
 </resources>

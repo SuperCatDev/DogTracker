@@ -5,6 +5,7 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import com.sc.dtracker.common.coroutines.throttleFist
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -65,21 +66,4 @@ class SensorDataRepository(context: Context) {
     }
         .throttleFist(1000)
         .distinctUntilChanged()
-}
-
-fun <T> Flow<T>.throttleFist(windowDuration: Long): Flow<T> = flow {
-    var windowStartTime = System.currentTimeMillis()
-    var emitted = false
-    collect { value ->
-        val currentTime = System.currentTimeMillis()
-        val delta = currentTime - windowStartTime
-        if (delta >= windowDuration) {
-            windowStartTime += delta / windowDuration * windowDuration
-            emitted = false
-        }
-        if (!emitted) {
-            emit(value)
-            emitted = true
-        }
-    }
 }

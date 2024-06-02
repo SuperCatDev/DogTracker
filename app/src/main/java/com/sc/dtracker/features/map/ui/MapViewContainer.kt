@@ -1,6 +1,7 @@
 package com.sc.dtracker.features.map.ui
 
 import android.content.Context
+import android.util.Log
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -52,11 +53,13 @@ class MapViewContainer(
 
     private var locationPlacemark: PlacemarkMapObject? = null
 
+    private var priorityAnimating: Boolean = false
+
     private val mapView by lazyUnsafe {
         MapView(context).also {
             it.mapWindow.map.logo.setAlignment(
                 Alignment(
-                    HorizontalAlignment.RIGHT,
+                    HorizontalAlignment.LEFT,
                     VerticalAlignment.BOTTOM
                 )
             )
@@ -69,7 +72,7 @@ class MapViewContainer(
                 it.mapWindow.map.move(
                     CameraPosition(
                         Point(0.0, 0.0),
-                        /* zoom = */ 17.0f,
+                        /* zoom = */ DEFAULT_ZOOM,
                         /* azimuth = */ 150.0f,
                         /* tilt = */ 30.0f
                     )
@@ -98,8 +101,17 @@ class MapViewContainer(
         )
     }
 
-    fun moveToLocation(location: MyLocation, azimuth: Float, withAnimation: Boolean) {
-        moveMap(location, withAnimation)
+    fun moveToLocation(
+        location: MyLocation,
+        azimuth: Float,
+        withAnimation: Boolean,
+        withZoom: Boolean = false,
+        withUserPriority: Boolean = false,
+    ) {
+        if (stateHolder.followMap) {
+            moveMap(location, withAnimation, withZoom, withUserPriority)
+        }
+
         movePlacemark(location, azimuth)
     }
 
@@ -116,27 +128,49 @@ class MapViewContainer(
         )
     }
 
-    private fun moveMap(location: MyLocation, withAnimation: Boolean) {
+    private fun moveMap(
+        location: MyLocation,
+        withAnimation: Boolean,
+        withZoom: Boolean,
+        withUserPriority: Boolean,
+    ) {
+        if (!withUserPriority && priorityAnimating) return
+
         if (withAnimation) {
             mapView.mapWindow.map.move(
                 CameraPosition(
                     Point(location.latitude, location.longitude),
-                    /* zoom = */ mapView.mapWindow.map.cameraPosition.zoom,
-                    /* azimuth = */ mapView.mapWindow.map.cameraPosition.azimuth,
-                    /* tilt = */ mapView.mapWindow.map.cameraPosition.tilt
+                    /* zoom = */
+                    if (withZoom) DEFAULT_ZOOM else mapView.mapWindow.map.cameraPosition.zoom,
+                    /* azimuth = */
+                    mapView.mapWindow.map.cameraPosition.azimuth,
+                    /* tilt = */
+                    mapView.mapWindow.map.cameraPosition.tilt
                 ),
-                Animation(Animation.Type.LINEAR, 1f),
-                null
-            )
+                Animation(Animation.Type.LINEAR, 0.5f),
+            ) { finished ->
+                if (finished) {
+                    priorityAnimating = false
+                }
+            }
+
+            if (withUserPriority) {
+                priorityAnimating = true
+            }
+
         } else {
             mapView.map.move(
                 CameraPosition(
                     Point(location.latitude, location.longitude),
-                    /* zoom = */ mapView.mapWindow.map.cameraPosition.zoom,
-                    /* azimuth = */ mapView.mapWindow.map.cameraPosition.azimuth,
-                    /* tilt = */ mapView.mapWindow.map.cameraPosition.tilt
+                    /* zoom = */
+                    if (withZoom) DEFAULT_ZOOM else mapView.mapWindow.map.cameraPosition.zoom,
+                    /* azimuth = */
+                    mapView.mapWindow.map.cameraPosition.azimuth,
+                    /* tilt = */
+                    mapView.mapWindow.map.cameraPosition.tilt
                 )
             )
+            priorityAnimating = false
         }
     }
 
@@ -182,8 +216,21 @@ class MapViewContainer(
             changed: Boolean
         ) {
             if (changed) {
+                Log.e("VVV", "updateReson: $updateReson")
                 stateHolder.globalRestoreCameraPos = cameraPosition
             }
+
+            when (updateReson) {
+                CameraUpdateReason.GESTURES -> {
+                    priorityAnimating = false
+                    stateHolder.onUserMovedMap()
+                }
+                CameraUpdateReason.APPLICATION -> {}
+            }
         }
+    }
+
+    private companion object {
+        const val DEFAULT_ZOOM = 17.0f
     }
 }

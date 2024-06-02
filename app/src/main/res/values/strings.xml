@@ -6,4 +6,6 @@
     <string name="no_location_permission_title">Required granted location permission</string>
     <string name="no_location_permission_text">Getting your location is the key functionality of this application. We do not send it to third parties and use them only for the operation of the map</string>
     <string name="no_location_permission_go_settings">Go to settings</string>
+
+    <string name="icon_description_jump_to_location">Jump to current location</string>
 </resources>

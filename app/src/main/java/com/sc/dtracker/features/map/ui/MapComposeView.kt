@@ -4,8 +4,16 @@ import android.Manifest
 import android.content.Context
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -15,23 +23,28 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.sc.dtracker.R
 import com.sc.dtracker.features.location.data.SensorDataRepository
 import com.sc.dtracker.features.location.domain.LocationChannelOutput
 import com.sc.dtracker.features.location.domain.LocationController
 import com.sc.dtracker.features.location.domain.models.LocationState
 import com.sc.dtracker.features.location.domain.models.MyLocation
 import com.sc.dtracker.features.map.data.MapStartLocationRepository
+import com.sc.dtracker.features.map.domain.MapBehaviourStateHolder
 import com.sc.dtracker.ui.views.bottomNavBarCornerHeight
 import com.sc.dtracker.ui.views.bottomNavBarHeight
 import org.koin.compose.getKoin
@@ -48,6 +61,7 @@ private fun Context.asMapViewContainer() = (this as MapViewHost).provideMapViewC
 fun MapComposeView(
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
 ) {
+    val mapBehaviourStateHolder: MapBehaviourStateHolder = getKoin().get()
     val locationController: LocationController = getKoin().get()
     val locationOutput: LocationChannelOutput = getKoin().get()
     val sensorDataRepository: SensorDataRepository = getKoin().get()
@@ -103,6 +117,34 @@ fun MapComposeView(
         update = {
         }
     )
+
+    val ctx = LocalContext.current
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = bottomNavBarHeight + 16.dp, start = 8.dp, end = 8.dp),
+        verticalArrangement = Arrangement.Bottom,
+        horizontalAlignment = Alignment.End
+    ) {
+        SquareFabButton(
+            imagePainter = painterResource(R.drawable.button_jump_to_my_location),
+            description = stringResource(id = R.string.icon_description_jump_to_location),
+            size = 32.dp
+        ) {
+            mapBehaviourStateHolder.onUserJumpedToCurrent()
+            (locationState.value as? LocationState.Value)?.let {
+                ctx.asMapViewContainer().moveToLocation(
+                    it.location,
+                    azimuth,
+                    withAnimation = true,
+                    withZoom = true,
+                    withUserPriority = true
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+    }
 }
 
 @Composable
@@ -173,5 +215,28 @@ private fun RequestMapPermissionsIfNeeded() {
 
     LaunchedEffect(Unit) {
         requestPermissionLauncher.launch(locationPermissions)
+    }
+}
+
+@Composable
+fun SquareFabButton(
+    modifier: Modifier = Modifier,
+    size: Dp,
+    imagePainter: Painter,
+    description: String,
+    onClick: () -> Unit,
+) {
+    FloatingActionButton(
+        onClick = onClick,
+        modifier = modifier,
+        containerColor = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+    ) {
+        Icon(
+            painter = imagePainter,
+            contentDescription = description,
+            tint = MaterialTheme.colorScheme.secondary,
+            modifier = Modifier.size(size)
+        )
     }
 }

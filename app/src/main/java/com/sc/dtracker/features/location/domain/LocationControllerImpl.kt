@@ -1,6 +1,7 @@
 package com.sc.dtracker.features.location.domain
 
 import android.util.Log
+import com.sc.dtracker.common.coroutines.throttleFist
 import com.sc.dtracker.features.location.data.LocationStorage
 import com.sc.dtracker.features.location.domain.models.LocationState
 import kotlinx.coroutines.CoroutineScope
@@ -65,6 +66,8 @@ class LocationControllerImpl(
                 }
                 resetState()
             }
+            // slighter lower from getting updates just in case of some collisions
+            .throttleFist(800)
             .onEach {
                 locationInput.setCurrentLocationState(
                     LocationState.Value(it)
