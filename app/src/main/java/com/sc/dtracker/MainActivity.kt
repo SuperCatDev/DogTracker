@@ -8,17 +8,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import com.sc.dtracker.features.map.domain.MapBehaviourStateHolder
 import com.sc.dtracker.features.map.ui.MapViewContainer
 import com.sc.dtracker.features.map.ui.MapViewHost
 import com.sc.dtracker.ui.BaseScreen
 import com.sc.dtracker.ui.ext.lazyUnsafe
 import com.sc.dtracker.ui.theme.DogTrackerTheme
 import com.yandex.mapkit.MapKitFactory
+import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity(), MapViewHost {
 
+    private val stateHolder: MapBehaviourStateHolder by inject()
     private val mapViewContainer by lazyUnsafe {
-        MapViewContainer(this)
+        MapViewContainer(this, stateHolder)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,9 +56,5 @@ class MainActivity : ComponentActivity(), MapViewHost {
 
     override fun provideMapViewContainer(): MapViewContainer {
         return mapViewContainer
-    }
-
-    private companion object {
-        const val PERMISSION_REQUEST_CODE = 2142
     }
 }

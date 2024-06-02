@@ -4,18 +4,24 @@ import android.content.Context
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
+import androidx.core.content.ContextCompat
 import com.sc.dtracker.R
 import com.sc.dtracker.common.ext.android.asDp
 import com.sc.dtracker.features.location.domain.models.MyLocation
+import com.sc.dtracker.features.map.domain.MapBehaviourStateHolder
 import com.sc.dtracker.ui.ext.lazyUnsafe
+import com.sc.dtracker.ui.theme.isDarkThemeInCompose
 import com.yandex.mapkit.Animation
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.logo.Alignment
 import com.yandex.mapkit.logo.HorizontalAlignment
 import com.yandex.mapkit.logo.Padding
 import com.yandex.mapkit.logo.VerticalAlignment
+import com.yandex.mapkit.map.CameraListener
 import com.yandex.mapkit.map.CameraPosition
+import com.yandex.mapkit.map.CameraUpdateReason
 import com.yandex.mapkit.map.IconStyle
+import com.yandex.mapkit.map.Map
 import com.yandex.mapkit.map.PlacemarkMapObject
 import com.yandex.mapkit.map.RotationType
 import com.yandex.mapkit.mapview.MapView
@@ -26,7 +32,12 @@ interface MapViewHost {
     fun provideMapViewContainer(): MapViewContainer
 }
 
-class MapViewContainer(context: Context) {
+
+class MapViewContainer(
+    context: Context,
+    private val stateHolder: MapBehaviourStateHolder
+) {
+
     private val locationView by lazyUnsafe {
         ImageView(context)
             .also {
@@ -35,7 +46,7 @@ class MapViewContainer(context: Context) {
                     size,
                     size,
                 )
-                it.setImageResource(R.drawable.my_location_icon)
+                it.setThemeNavigationIconResource()
             }
     }
 
@@ -50,19 +61,32 @@ class MapViewContainer(context: Context) {
                 )
             )
 
-            it.mapWindow.map.move(
-                CameraPosition(
-                    Point(0.0, 0.0),
-                    /* zoom = */ 17.0f,
-                    /* azimuth = */ 150.0f,
-                    /* tilt = */ 30.0f
+            stateHolder.globalRestoreCameraPos?.let { cp ->
+                it.mapWindow.map.move(
+                    cp
                 )
-            )
+            } ?: run {
+                it.mapWindow.map.move(
+                    CameraPosition(
+                        Point(0.0, 0.0),
+                        /* zoom = */ 17.0f,
+                        /* azimuth = */ 150.0f,
+                        /* tilt = */ 30.0f
+                    )
+                )
+            }
+
+            it.mapWindow.map.addCameraListener(LocationCameraListener())
         }
     }
 
     fun getView(): View {
-        return mapView
+        return mapView.also {
+            if (it.mapWindow.map.isNightModeEnabled != isDarkThemeInCompose) {
+                it.mapWindow.map.isNightModeEnabled = isDarkThemeInCompose
+                locationView.setThemeNavigationIconResource()
+            }
+        }
     }
 
     fun onCreate() {
@@ -77,6 +101,19 @@ class MapViewContainer(context: Context) {
     fun moveToLocation(location: MyLocation, azimuth: Float, withAnimation: Boolean) {
         moveMap(location, withAnimation)
         movePlacemark(location, azimuth)
+    }
+
+    private fun ImageView.setThemeNavigationIconResource() {
+        setImageDrawable(
+            ContextCompat.getDrawable(
+                context,
+                if (isDarkThemeInCompose) {
+                    R.drawable.my_location_icon_dark
+                } else {
+                    R.drawable.my_location_icon_light
+                }
+            )
+        )
     }
 
     private fun moveMap(location: MyLocation, withAnimation: Boolean) {
@@ -135,5 +172,18 @@ class MapViewContainer(context: Context) {
 
     fun onStop() {
         mapView.onStop()
+    }
+
+    private inner class LocationCameraListener : CameraListener {
+        override fun onCameraPositionChanged(
+            map: Map,
+            cameraPosition: CameraPosition,
+            updateReson: CameraUpdateReason,
+            changed: Boolean
+        ) {
+            if (changed) {
+                stateHolder.globalRestoreCameraPos = cameraPosition
+            }
+        }
     }
 }
