@@ -2,4 +2,8 @@
     <string name="app_name">Dog Tracker</string>
     <string name="location_channel_name">Tracking notification</string>
     <string name="location_notification_title">Tracking in progress</string>
+
+    <string name="no_location_permission_title">Required granted location permission</string>
+    <string name="no_location_permission_text">Getting your location is the key functionality of this application. We do not send it to third parties and use them only for the operation of the map</string>
+    <string name="no_location_permission_go_settings">Go to settings</string>
 </resources>

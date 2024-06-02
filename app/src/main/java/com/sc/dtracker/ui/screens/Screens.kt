@@ -16,10 +16,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.painterResource
+import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import com.sc.dtracker.R
 import com.sc.dtracker.features.map.ui.MapComposeView
+import com.sc.dtracker.features.map.ui.NoMapPermissionView
 import com.sc.dtracker.ui.views.bottomNavBarHeight
 
 @Stable

@@ -1,6 +1,9 @@
 package com.sc.dtracker.features.map.ui
 
+import android.Manifest
 import android.content.Context
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -22,6 +25,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.sc.dtracker.features.location.data.SensorDataRepository
 import com.sc.dtracker.features.location.domain.LocationChannelOutput
 import com.sc.dtracker.features.location.domain.LocationController
@@ -33,6 +37,10 @@ import com.sc.dtracker.ui.views.bottomNavBarHeight
 import org.koin.compose.getKoin
 
 private const val MAP_VIEW_FROM_KEY = "MapComposeView"
+private val locationPermissions = arrayOf(
+    Manifest.permission.ACCESS_FINE_LOCATION,
+    Manifest.permission.ACCESS_COARSE_LOCATION
+)
 
 private fun Context.asMapViewContainer() = (this as MapViewHost).provideMapViewContainer()
 
@@ -47,6 +55,8 @@ fun MapComposeView(
         .collectAsState(initial = LocationState.NoActive)
 
     var azimuth by remember { mutableFloatStateOf(0f) }
+
+    RequestMapPermissionsIfNeeded()
 
     LaunchedEffect(sensorDataRepository) {
         sensorDataRepository.getAzimuthFlow().collect { newAzimuth ->
@@ -139,4 +149,29 @@ private fun UpdateLogo(
 
     ctx.asMapViewContainer()
         .setLogoAt(rightPadding.toInt(), logoBottomPadding.toInt())
+}
+
+@Composable
+private fun RequestMapPermissionsIfNeeded() {
+    var showDialog by remember {
+        mutableStateOf(false)
+    }
+
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permsResults ->
+        if (permsResults[locationPermissions[0]] != true || permsResults[locationPermissions[1]] != true) {
+            showDialog = true
+        }
+    }
+
+    if (showDialog) {
+        NoMapPermissionView {
+            showDialog = false
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        requestPermissionLauncher.launch(locationPermissions)
+    }
 }

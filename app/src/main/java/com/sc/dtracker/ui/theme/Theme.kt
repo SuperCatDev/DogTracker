@@ -40,6 +40,9 @@ private val LightColorScheme = lightColorScheme(
     */
 )
 
+var isDarkThemeInCompose = false
+    private set
+
 @Composable
 fun DogTrackerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -47,6 +50,9 @@ fun DogTrackerTheme(
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
+
+    isDarkThemeInCompose = darkTheme
+
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current

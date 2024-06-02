@@ -74,6 +74,7 @@ dependencies {
     implementation(libs.androidx.material)
     implementation(libs.androidx.datastore.pref)
     implementation(libs.kotlinx.immutable)
+    implementation(libs.compose.permissions)
 
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.core)

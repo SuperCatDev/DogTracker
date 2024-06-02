@@ -1,5 +1,6 @@
 package com.sc.dtracker.ui
 
+import android.Manifest
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.Scaffold
@@ -14,8 +15,12 @@ import androidx.compose.ui.res.painterResource
 import cafe.adriel.voyager.navigator.tab.CurrentTab
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.TabNavigator
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import com.sc.dtracker.R
 import com.sc.dtracker.features.location.ui.RecordLocationLauncher
+import com.sc.dtracker.features.map.ui.NoMapPermissionView
 import com.sc.dtracker.ui.screens.MapScreen
 import com.sc.dtracker.ui.screens.Settings
 import com.sc.dtracker.ui.screens.StableTab
@@ -24,7 +29,7 @@ import com.sc.dtracker.ui.views.BottomNavBarItem
 import kotlinx.collections.immutable.persistentListOf
 import org.koin.compose.getKoin
 
-
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 fun BaseScreen(modifier: Modifier = Modifier) {
@@ -52,6 +57,21 @@ fun BaseScreen(modifier: Modifier = Modifier) {
                     mutableStateOf(recordLocationLauncher.isStarted(context))
                 }
 
+                val locationPermissionsState =
+                    rememberPermissionState(permission = Manifest.permission.ACCESS_FINE_LOCATION)
+                val location2PermissionsState =
+                    rememberPermissionState(permission = Manifest.permission.ACCESS_COARSE_LOCATION)
+
+                var showDialog by remember {
+                    mutableStateOf(false)
+                }
+
+                if (showDialog) {
+                    NoMapPermissionView {
+                        showDialog = false
+                    }
+                }
+
                 BottomNavBar(
                     buttons = buttons,
                     fabImage = if (locationRecordStarted) {
@@ -62,11 +82,15 @@ fun BaseScreen(modifier: Modifier = Modifier) {
                     fabOnClick = {
                         if (locationRecordStarted) {
                             recordLocationLauncher.stop(context)
+                            locationRecordStarted = locationRecordStarted.not()
                         } else {
-                            recordLocationLauncher.start(context)
+                            if (locationPermissionsState.status.isGranted && location2PermissionsState.status.isGranted) {
+                                recordLocationLauncher.start(context)
+                                locationRecordStarted = locationRecordStarted.not()
+                            } else {
+                                showDialog = true
+                            }
                         }
-
-                        locationRecordStarted = locationRecordStarted.not()
                     }
                 )
             },
