@@ -85,6 +85,9 @@ dependencies {
     implementation(libs.voyager.navigator)
     implementation(libs.voyager.transitions)
     implementation(libs.voyager.screen.model)
+    implementation(libs.mvi.orbit.core)
+    implementation(libs.mvi.orbit.viewmodel)
+    implementation(libs.mvi.orbit.compose)
     implementation(libs.yandex.maps.lite)
 
     testImplementation(libs.junit)
