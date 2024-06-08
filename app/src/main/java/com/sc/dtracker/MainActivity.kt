@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import com.sc.dtracker.features.map.domain.MapBehaviourStateHolder
+import androidx.lifecycle.coroutineScope
+import com.sc.dtracker.features.map.domain.MapRestoreStateHolder
+import com.sc.dtracker.features.map.domain.mvi.MapFeature
 import com.sc.dtracker.features.map.ui.MapViewContainer
 import com.sc.dtracker.features.map.ui.MapViewHost
 import com.sc.dtracker.ui.BaseScreen
@@ -19,9 +21,17 @@ import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity(), MapViewHost {
 
-    private val stateHolder: MapBehaviourStateHolder by inject()
+    private val stateHolder: MapRestoreStateHolder by inject()
+    private val coroutineScope = lifecycle.coroutineScope
+    private val mapFeature: MapFeature by inject()
+
     private val mapViewContainer by lazyUnsafe {
-        MapViewContainer(this, stateHolder)
+        MapViewContainer(
+            this,
+            mapFeature,
+            coroutineScope,
+            stateHolder
+        )
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

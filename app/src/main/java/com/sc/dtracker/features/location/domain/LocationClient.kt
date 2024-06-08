@@ -1,13 +1,13 @@
 package com.sc.dtracker.features.location.domain
 
-import com.sc.dtracker.features.location.domain.models.MyLocation
+import com.sc.dtracker.features.location.domain.models.Location
 import kotlinx.coroutines.flow.Flow
 
 interface LocationClient {
 
-    fun getLocationUpdates(intervalMs: Long): Flow<MyLocation>
+    fun getLocationUpdates(intervalMs: Long): Flow<Location>
 
-    class LocationException(message: String): Exception(message) {
+    class LocationException(message: String) : Exception(message) {
 
         companion object {
             const val MISSING_PERMISSION_EXCEPTION = "MISSING_PERMISSION_EXCEPTION"

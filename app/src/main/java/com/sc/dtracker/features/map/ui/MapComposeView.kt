@@ -17,9 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -38,13 +36,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import com.sc.dtracker.R
-import com.sc.dtracker.features.location.data.SensorDataRepository
-import com.sc.dtracker.features.location.domain.LocationChannelOutput
 import com.sc.dtracker.features.location.domain.LocationController
-import com.sc.dtracker.features.location.domain.models.LocationState
-import com.sc.dtracker.features.location.domain.models.MyLocation
-import com.sc.dtracker.features.map.data.MapStartLocationRepository
-import com.sc.dtracker.features.map.domain.MapBehaviourStateHolder
+import com.sc.dtracker.features.map.domain.mvi.MapFeature
 import com.sc.dtracker.ui.views.bottomNavBarCornerHeight
 import com.sc.dtracker.ui.views.bottomNavBarHeight
 import org.koin.compose.getKoin
@@ -61,22 +54,10 @@ private fun Context.asMapViewContainer() = (this as MapViewHost).provideMapViewC
 fun MapComposeView(
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
 ) {
-    val mapBehaviourStateHolder: MapBehaviourStateHolder = getKoin().get()
     val locationController: LocationController = getKoin().get()
-    val locationOutput: LocationChannelOutput = getKoin().get()
-    val sensorDataRepository: SensorDataRepository = getKoin().get()
-    val locationState = locationOutput.observeLocationState()
-        .collectAsState(initial = LocationState.NoActive)
-
-    var azimuth by remember { mutableFloatStateOf(0f) }
+    val mapFeature: MapFeature = getKoin().get()
 
     RequestMapPermissionsIfNeeded()
-
-    LaunchedEffect(sensorDataRepository) {
-        sensorDataRepository.getAzimuthFlow().collect { newAzimuth ->
-            azimuth = newAzimuth
-        }
-    }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -103,8 +84,6 @@ fun MapComposeView(
         }
     }
 
-    // todo probably move to view update area
-    MoveMap(locationState.value, azimuth)
     UpdateLogo(bottomNavBarCornerHeight)
 
     AndroidView(
@@ -118,8 +97,6 @@ fun MapComposeView(
         }
     )
 
-    val ctx = LocalContext.current
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -132,50 +109,9 @@ fun MapComposeView(
             description = stringResource(id = R.string.icon_description_jump_to_location),
             size = 32.dp
         ) {
-            mapBehaviourStateHolder.onUserJumpedToCurrent()
-            (locationState.value as? LocationState.Value)?.let {
-                ctx.asMapViewContainer().moveToLocation(
-                    it.location,
-                    azimuth,
-                    withAnimation = true,
-                    withZoom = true,
-                    withUserPriority = true
-                )
-            }
+            mapFeature.onJumpToCurrentLocation()
         }
         Spacer(modifier = Modifier.height(12.dp))
-    }
-}
-
-@Composable
-private fun MoveMap(
-    locationState: LocationState,
-    azimuth: Float
-) {
-    val mapStartLocationRepository: MapStartLocationRepository = getKoin().get()
-
-    val initialLocationState = remember {
-        mutableStateOf<MyLocation?>(null)
-    }
-
-    LaunchedEffect(key1 = Unit) {
-        initialLocationState.value = mapStartLocationRepository.getAndConsume()
-    }
-
-    val ctx = LocalContext.current
-
-    when (locationState) {
-        is LocationState.Error -> {}
-        is LocationState.Value -> {
-            ctx.asMapViewContainer().moveToLocation(locationState.location, azimuth, true)
-        }
-        is LocationState.NoActive -> {
-            initialLocationState.value?.let {
-                ctx.asMapViewContainer().moveToLocation(it, azimuth, false)
-            }
-
-            initialLocationState.value = null
-        }
     }
 }
 

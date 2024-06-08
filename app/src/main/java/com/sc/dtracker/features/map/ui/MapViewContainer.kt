@@ -8,8 +8,11 @@ import android.widget.ImageView
 import androidx.core.content.ContextCompat
 import com.sc.dtracker.R
 import com.sc.dtracker.common.ext.android.asDp
-import com.sc.dtracker.features.location.domain.models.MyLocation
-import com.sc.dtracker.features.map.domain.MapBehaviourStateHolder
+import com.sc.dtracker.features.location.domain.models.Location
+import com.sc.dtracker.features.map.domain.MapRestoreStateHolder
+import com.sc.dtracker.features.map.domain.mvi.MapFeature
+import com.sc.dtracker.features.map.domain.mvi.MapSideEffect
+import com.sc.dtracker.features.map.domain.mvi.MapState
 import com.sc.dtracker.ui.ext.lazyUnsafe
 import com.sc.dtracker.ui.theme.isDarkThemeInCompose
 import com.yandex.mapkit.Animation
@@ -27,16 +30,20 @@ import com.yandex.mapkit.map.PlacemarkMapObject
 import com.yandex.mapkit.map.RotationType
 import com.yandex.mapkit.mapview.MapView
 import com.yandex.runtime.ui_view.ViewProvider
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 interface MapViewHost {
 
     fun provideMapViewContainer(): MapViewContainer
 }
 
-
 class MapViewContainer(
     context: Context,
-    private val stateHolder: MapBehaviourStateHolder
+    private val mapFeature: MapFeature,
+    coroutineScope: CoroutineScope,
+    private val stateHolder: MapRestoreStateHolder
 ) {
 
     private val locationView by lazyUnsafe {
@@ -51,9 +58,8 @@ class MapViewContainer(
             }
     }
 
+    private val locationMapListener = LocationCameraListener()
     private var locationPlacemark: PlacemarkMapObject? = null
-
-    private var priorityAnimating: Boolean = false
 
     private val mapView by lazyUnsafe {
         MapView(context).also {
@@ -79,8 +85,35 @@ class MapViewContainer(
                 )
             }
 
-            it.mapWindow.map.addCameraListener(LocationCameraListener())
+            it.mapWindow.map.addCameraListener(locationMapListener)
         }
+    }
+
+    init {
+        mapFeature
+            .container
+            .stateFlow
+            .onEach(::collectMapState)
+            .launchIn(coroutineScope)
+
+        mapFeature
+            .container
+            .sideEffectFlow
+            .onEach(::collectSideEffect)
+            .launchIn(coroutineScope)
+    }
+
+
+    fun onStart() {
+        mapView.onStart()
+    }
+
+    fun onStop() {
+        mapView.onStop()
+    }
+
+
+    fun onCreate() {
     }
 
     fun getView(): View {
@@ -92,27 +125,42 @@ class MapViewContainer(
         }
     }
 
-    fun onCreate() {
-    }
-
     fun setLogoAt(horizontalPx: Int, verticalPx: Int) {
         mapView.mapWindow.map.logo.setPadding(
             Padding(horizontalPx, verticalPx)
         )
     }
 
-    fun moveToLocation(
-        location: MyLocation,
-        azimuth: Float,
-        withAnimation: Boolean,
-        withZoom: Boolean = false,
-        withUserPriority: Boolean = false,
-    ) {
-        if (stateHolder.followMap) {
-            moveMap(location, withAnimation, withZoom, withUserPriority)
+    private fun collectMapState(state: MapState) {
+        // todo probably isn't needed
+        when (state) {
+            is MapState.NoLocation -> {
+            }
+            is MapState.WithLocation -> {
+            }
         }
+    }
 
-        movePlacemark(location, azimuth)
+    private fun collectSideEffect(effect: MapSideEffect) {
+        when (effect) {
+            is MapSideEffect.MapMove -> {
+                Log.e("VVV", "Move map effect: $effect")
+                moveMap(
+                    location = effect.location,
+                    withAnimation = effect.animated,
+                    azimuth = effect.azimuth,
+                    zoom = effect.zoom,
+                    tilt = effect.tilt,
+                )
+            }
+            is MapSideEffect.UserMove -> {
+                Log.e("VVV", "Move UserMove effect: $effect")
+                movePlacemark(
+                    location = effect.location,
+                    azimuth = effect.azimuth,
+                )
+            }
+        }
     }
 
     private fun ImageView.setThemeNavigationIconResource() {
@@ -129,52 +177,51 @@ class MapViewContainer(
     }
 
     private fun moveMap(
-        location: MyLocation,
+        location: Location,
         withAnimation: Boolean,
-        withZoom: Boolean,
-        withUserPriority: Boolean,
+        azimuth: Float?,
+        zoom: Float?,
+        tilt: Float?,
     ) {
-        if (!withUserPriority && priorityAnimating) return
-
         if (withAnimation) {
             mapView.mapWindow.map.move(
                 CameraPosition(
                     Point(location.latitude, location.longitude),
                     /* zoom = */
-                    if (withZoom) DEFAULT_ZOOM else mapView.mapWindow.map.cameraPosition.zoom,
+                    zoom ?: mapView.mapWindow.map.cameraPosition.zoom,
                     /* azimuth = */
-                    mapView.mapWindow.map.cameraPosition.azimuth,
+                    azimuth ?: mapView.mapWindow.map.cameraPosition.azimuth,
                     /* tilt = */
-                    mapView.mapWindow.map.cameraPosition.tilt
+                    tilt ?: mapView.mapWindow.map.cameraPosition.tilt
                 ),
                 Animation(Animation.Type.LINEAR, 0.5f),
             ) { finished ->
                 if (finished) {
-                    priorityAnimating = false
+                    // priorityAnimating = false
                 }
             }
 
-            if (withUserPriority) {
-                priorityAnimating = true
-            }
+            //   if (withUserPriority) {
+            //       priorityAnimating = true
+            //    }
 
         } else {
             mapView.map.move(
                 CameraPosition(
                     Point(location.latitude, location.longitude),
                     /* zoom = */
-                    if (withZoom) DEFAULT_ZOOM else mapView.mapWindow.map.cameraPosition.zoom,
+                    zoom ?: mapView.mapWindow.map.cameraPosition.zoom,
                     /* azimuth = */
-                    mapView.mapWindow.map.cameraPosition.azimuth,
+                    azimuth ?: mapView.mapWindow.map.cameraPosition.azimuth,
                     /* tilt = */
-                    mapView.mapWindow.map.cameraPosition.tilt
+                    tilt ?: mapView.mapWindow.map.cameraPosition.tilt
                 )
             )
-            priorityAnimating = false
+            //  priorityAnimating = false
         }
     }
 
-    private fun movePlacemark(location: MyLocation, azimuth: Float) {
+    private fun movePlacemark(location: Location, azimuth: Float) {
         locationPlacemark?.let {
             it.geometry = Point(
                 location.latitude,
@@ -200,14 +247,6 @@ class MapViewContainer(
         }
     }
 
-    fun onStart() {
-        mapView.onStart()
-    }
-
-    fun onStop() {
-        mapView.onStop()
-    }
-
     private inner class LocationCameraListener : CameraListener {
         override fun onCameraPositionChanged(
             map: Map,
@@ -216,16 +255,14 @@ class MapViewContainer(
             changed: Boolean
         ) {
             if (changed) {
-                Log.e("VVV", "updateReson: $updateReson")
                 stateHolder.globalRestoreCameraPos = cameraPosition
-            }
 
-            when (updateReson) {
-                CameraUpdateReason.GESTURES -> {
-                    priorityAnimating = false
-                    stateHolder.onUserMovedMap()
+                when (updateReson) {
+                    CameraUpdateReason.GESTURES -> {
+                        mapFeature.onMapMovedByUser()
+                    }
+                    CameraUpdateReason.APPLICATION -> {}
                 }
-                CameraUpdateReason.APPLICATION -> {}
             }
         }
     }

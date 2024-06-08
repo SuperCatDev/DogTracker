@@ -1,7 +1,7 @@
 package com.sc.dtracker.features.map.domain.mvi
 
 import com.sc.dtracker.features.location.domain.LocationClient
-import com.sc.dtracker.features.location.domain.models.MyLocation
+import com.sc.dtracker.features.location.domain.models.Location
 
 sealed interface MapState {
 
@@ -13,7 +13,7 @@ sealed interface MapState {
 
     data class WithLocation(
         override val viewAzimuth: Float,
-        val location: MyLocation,
+        val location: Location,
         val error: MapStateError = MapStateError.NoError,
         val followLocation: Boolean = true
     ) : MapState

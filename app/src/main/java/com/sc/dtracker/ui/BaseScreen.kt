@@ -20,7 +20,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.sc.dtracker.R
 import com.sc.dtracker.features.location.ui.RecordLocationLauncher
-import com.sc.dtracker.features.map.domain.MapBehaviourStateHolder
+import com.sc.dtracker.features.map.domain.mvi.MapFeature
 import com.sc.dtracker.features.map.ui.NoMapPermissionView
 import com.sc.dtracker.ui.screens.MapScreen
 import com.sc.dtracker.ui.screens.Settings
@@ -36,7 +36,7 @@ import org.koin.compose.getKoin
 fun BaseScreen(modifier: Modifier = Modifier) {
 
     val recordLocationLauncher: RecordLocationLauncher = getKoin().get()
-    val mapBehaviourStateHolder: MapBehaviourStateHolder = getKoin().get()
+    val mapFeature: MapFeature = getKoin().get()
 
     TabNavigator(MapScreen) {
         Scaffold(
@@ -88,7 +88,7 @@ fun BaseScreen(modifier: Modifier = Modifier) {
                         } else {
                             if (locationPermissionsState.status.isGranted && location2PermissionsState.status.isGranted) {
                                 recordLocationLauncher.start(context)
-                                mapBehaviourStateHolder.onUserStartTrackRecording()
+                                mapFeature.onTrackingStarted()
                                 locationRecordStarted = locationRecordStarted.not()
                             } else {
                                 showDialog = true

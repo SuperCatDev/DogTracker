@@ -2,11 +2,9 @@ package com.sc.dtracker.features.map.domain.mvi
 
 import com.sc.dtracker.features.location.data.SensorDataRepository
 import com.sc.dtracker.features.location.domain.LocationChannelOutput
-import com.sc.dtracker.features.location.domain.LocationController
 import com.sc.dtracker.features.location.domain.models.LocationState
-import com.sc.dtracker.features.location.domain.models.MyLocation
+import com.sc.dtracker.features.location.domain.models.Location
 import com.sc.dtracker.features.map.data.MapStartLocationRepository
-import com.sc.dtracker.features.map.domain.MapBehaviourStateHolder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -14,18 +12,18 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.orbitmvi.orbit.Container
 import org.orbitmvi.orbit.ContainerHost
+import org.orbitmvi.orbit.annotation.OrbitDsl
 import org.orbitmvi.orbit.annotation.OrbitExperimental
 import org.orbitmvi.orbit.container
+import org.orbitmvi.orbit.syntax.simple.SimpleSyntax
 import org.orbitmvi.orbit.syntax.simple.intent
+import org.orbitmvi.orbit.syntax.simple.postSideEffect
 import org.orbitmvi.orbit.syntax.simple.reduce
-import org.orbitmvi.orbit.syntax.simple.repeatOnSubscription
 import org.orbitmvi.orbit.syntax.simple.runOn
 import org.orbitmvi.orbit.syntax.simple.subIntent
 
 @OptIn(OrbitExperimental::class)
 class MapFeature(
-    private val mapBehaviourStateHolder: MapBehaviourStateHolder,
-    private val locationController: LocationController,
     private val locationOutput: LocationChannelOutput,
     private val sensorDataRepository: SensorDataRepository,
     private val mapStartLocationRepository: MapStartLocationRepository
@@ -42,27 +40,53 @@ class MapFeature(
         }
     }
 
-    fun onMapMovedByUser() {
-
+    fun onMapMovedByUser() = intent {
+        runOn(MapState.WithLocation::class) {
+            reduce { state.copy(followLocation = false) }
+        }
     }
 
-    fun onTrackingStarted() {
-
+    // todo must return to follow user after some time and so we need to have onTrackingStarted/stopped callbacks
+    fun onTrackingStarted() = intent {
+        runOn(MapState.WithLocation::class) {
+            postSideEffect(
+                MapSideEffect.MapMove(
+                    location = state.location,
+                    animated = true,
+                    zoom = DEFAULT_FOLLOW_ZOOM,
+                )
+            )
+            reduce { state.copy(followLocation = true) }
+        }
     }
 
-    fun onJumpToCurrentLocation() {
-
+    // todo currently the same as onTrackingStarted but prbbly should behave differently
+    fun onJumpToCurrentLocation() = intent {
+        runOn(MapState.WithLocation::class) {
+            postSideEffect(
+                MapSideEffect.MapMove(
+                    location = state.location,
+                    animated = true,
+                    zoom = DEFAULT_FOLLOW_ZOOM,
+                )
+            )
+            reduce { state.copy(followLocation = true) }
+        }
     }
 
     private suspend fun observeAzimuthFlow() = subIntent {
-        repeatOnSubscription {
+        scope.launch {
             sensorDataRepository.getAzimuthFlow()
                 .collect { azimuth ->
                     intent {
-                        reduce {
-                            when (val st = state) {
-                                is MapState.NoLocation -> st.copy(viewAzimuth = azimuth)
-                                is MapState.WithLocation -> st.copy(viewAzimuth = azimuth)
+                        when (val st = state) {
+                            is MapState.NoLocation -> {
+                                reduce { st.copy(viewAzimuth = azimuth) }
+                            }
+
+                            is MapState.WithLocation -> {
+                                onLocationChangedAzimuthEffect(azimuth)
+                                reduce { st.copy(viewAzimuth = azimuth) }
                             }
                         }
                     }
@@ -71,22 +95,22 @@ class MapFeature(
     }
 
     private suspend fun getLastAndStartObservingLocation() = subIntent {
-        val initialLocation = mapStartLocationRepository.getAndConsume()
+        val initialLocation = mapStartLocationRepository.getAndConsume() ?: Location(0.0, 0.0)
 
         runOn(MapState.NoLocation::class) {
+            postSideEffect(
+                MapSideEffect.MapMove(
+                    location = initialLocation,
+                    animated = false,
+                    azimuth = 0f
+                )
+            )
+
             reduce {
-                // todo send move map effects
-                if (initialLocation != null) {
-                    MapState.WithLocation(
-                        location = initialLocation,
-                        viewAzimuth = state.viewAzimuth
-                    )
-                } else {
-                    MapState.WithLocation(
-                        location = MyLocation(0.0, 0.0),
-                        viewAzimuth = state.viewAzimuth
-                    )
-                }
+                MapState.WithLocation(
+                    location = initialLocation,
+                    viewAzimuth = state.viewAzimuth
+                )
             }
 
             observeLocation()
@@ -94,15 +118,15 @@ class MapFeature(
     }
 
     private suspend fun observeLocation() = subIntent {
-        repeatOnSubscription {
+        scope.launch {
             locationOutput.observeLocationState()
                 .collect { locationState ->
+
                     intent {
-                        runOn(MapState.WithLocation::class) {
-                            // todo send move map effects
-                            when (locationState) {
-                                is LocationState.NoActive -> Unit
-                                is LocationState.Error -> {
+                        when (locationState) {
+                            is LocationState.NoActive -> Unit
+                            is LocationState.Error -> {
+                                runOn(MapState.WithLocation::class) {
                                     reduce {
                                         state.copy(
                                             error = MapStateError.Exists(
@@ -111,7 +135,10 @@ class MapFeature(
                                         )
                                     }
                                 }
-                                is LocationState.Value -> {
+                            }
+                            is LocationState.Value -> {
+                                onLocationChangedEffect(locationState.location)
+                                runOn(MapState.WithLocation::class) {
                                     reduce {
                                         state.copy(
                                             location = locationState.location,
@@ -124,5 +151,57 @@ class MapFeature(
                     }
                 }
         }
+    }
+
+    @OrbitDsl
+    private suspend fun SimpleSyntax<MapState, MapSideEffect>.onLocationChangedAzimuthEffect(
+        azimuth: Float
+    ) {
+        runOn(MapState.WithLocation::class) {
+            postSideEffect(
+                MapSideEffect.UserMove(
+                    location = state.location,
+                    azimuth = azimuth,
+                )
+            )
+
+            if (state.followLocation) {
+                postSideEffect(
+                    MapSideEffect.MapMove(
+                        location = state.location,
+                        animated = true,
+                        zoom = DEFAULT_FOLLOW_ZOOM,
+                    )
+                )
+            }
+        }
+    }
+
+    @OrbitDsl
+    private suspend fun SimpleSyntax<MapState, MapSideEffect>.onLocationChangedEffect(
+        location: Location
+    ) {
+        runOn(MapState.WithLocation::class) {
+            postSideEffect(
+                MapSideEffect.UserMove(
+                    location = location,
+                    azimuth = state.viewAzimuth,
+                )
+            )
+
+            if (state.followLocation) {
+                postSideEffect(
+                    MapSideEffect.MapMove(
+                        location = location,
+                        animated = true,
+                        zoom = DEFAULT_FOLLOW_ZOOM,
+                    )
+                )
+            }
+        }
+    }
+
+    private companion object {
+        const val DEFAULT_FOLLOW_ZOOM = 17.0f
     }
 }

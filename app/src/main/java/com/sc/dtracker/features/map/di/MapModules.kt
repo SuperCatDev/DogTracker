@@ -1,7 +1,8 @@
 package com.sc.dtracker.features.map.di
 
 import com.sc.dtracker.features.map.data.MapStartLocationRepository
-import com.sc.dtracker.features.map.domain.MapBehaviourStateHolder
+import com.sc.dtracker.features.map.domain.MapRestoreStateHolder
+import com.sc.dtracker.features.map.domain.mvi.MapFeature
 import org.koin.dsl.module
 
 val mapDataModule = module {
@@ -9,5 +10,7 @@ val mapDataModule = module {
 }
 
 val mapDomainModule = module {
-    single { MapBehaviourStateHolder() }
+    single { MapRestoreStateHolder() }
+
+    single { MapFeature(get(), get(), get()) }
 }

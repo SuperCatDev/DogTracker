@@ -13,7 +13,7 @@ import com.google.android.gms.location.Priority
 import com.sc.dtracker.common.ext.android.hasLocationPermission
 import com.sc.dtracker.features.location.domain.LocationClient
 import com.sc.dtracker.features.location.domain.LocationClient.LocationException
-import com.sc.dtracker.features.location.domain.models.MyLocation
+import com.sc.dtracker.features.location.domain.models.Location
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -26,7 +26,7 @@ class DefaultLocationClient(
 ) : LocationClient {
 
     @SuppressLint("MissingPermission")
-    override fun getLocationUpdates(intervalMs: Long): Flow<MyLocation> {
+    override fun getLocationUpdates(intervalMs: Long): Flow<Location> {
         return callbackFlow {
             validateLocationAvailability(context)
 
@@ -52,7 +52,7 @@ class DefaultLocationClient(
             .build()
     }
 
-    private fun ProducerScope<MyLocation>.getLocationCallback(): LocationCallback {
+    private fun ProducerScope<Location>.getLocationCallback(): LocationCallback {
         return object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
                 super.onLocationResult(result)
@@ -60,7 +60,7 @@ class DefaultLocationClient(
                 result.lastLocation?.let { location ->
                     launch {
                         send(
-                            MyLocation(
+                            Location(
                                 longitude = location.longitude,
                                 latitude = location.latitude,
                             )
