@@ -1,7 +1,6 @@
 package com.sc.dtracker.features.map.ui
 
 import android.content.Context
-import android.util.Log
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -144,7 +143,6 @@ class MapViewContainer(
     private fun collectSideEffect(effect: MapSideEffect) {
         when (effect) {
             is MapSideEffect.MapMove -> {
-                Log.e("VVV", "Move map effect: $effect")
                 moveMap(
                     location = effect.location,
                     withAnimation = effect.animated,
@@ -154,7 +152,6 @@ class MapViewContainer(
                 )
             }
             is MapSideEffect.UserMove -> {
-                Log.e("VVV", "Move UserMove effect: $effect")
                 movePlacemark(
                     location = effect.location,
                     azimuth = effect.azimuth,

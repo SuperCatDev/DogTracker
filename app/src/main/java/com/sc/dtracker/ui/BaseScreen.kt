@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,7 +37,6 @@ import org.koin.compose.getKoin
 fun BaseScreen(modifier: Modifier = Modifier) {
 
     val recordLocationLauncher: RecordLocationLauncher = getKoin().get()
-    val mapFeature: MapFeature = getKoin().get()
 
     TabNavigator(MapScreen) {
         Scaffold(
@@ -55,9 +55,7 @@ fun BaseScreen(modifier: Modifier = Modifier) {
 
                 val context = LocalContext.current
 
-                var locationRecordStarted by remember {
-                    mutableStateOf(recordLocationLauncher.isStarted(context))
-                }
+                val locationRecordStarted = recordLocationLauncher.observeStarted().collectAsState()
 
                 val locationPermissionsState =
                     rememberPermissionState(permission = Manifest.permission.ACCESS_FINE_LOCATION)
@@ -76,20 +74,17 @@ fun BaseScreen(modifier: Modifier = Modifier) {
 
                 BottomNavBar(
                     buttons = buttons,
-                    fabImage = if (locationRecordStarted) {
+                    fabImage = if (locationRecordStarted.value) {
                         painterResource(R.drawable.record_button_stop)
                     } else {
                         painterResource(R.drawable.record_button_start)
                     },
                     fabOnClick = {
-                        if (locationRecordStarted) {
+                        if (locationRecordStarted.value) {
                             recordLocationLauncher.stop(context)
-                            locationRecordStarted = locationRecordStarted.not()
                         } else {
                             if (locationPermissionsState.status.isGranted && location2PermissionsState.status.isGranted) {
                                 recordLocationLauncher.start(context)
-                                mapFeature.onTrackingStarted()
-                                locationRecordStarted = locationRecordStarted.not()
                             } else {
                                 showDialog = true
                             }

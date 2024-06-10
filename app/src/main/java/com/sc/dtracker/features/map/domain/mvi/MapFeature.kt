@@ -2,13 +2,16 @@ package com.sc.dtracker.features.map.domain.mvi
 
 import com.sc.dtracker.features.location.data.SensorDataRepository
 import com.sc.dtracker.features.location.domain.LocationChannelOutput
-import com.sc.dtracker.features.location.domain.models.LocationState
 import com.sc.dtracker.features.location.domain.models.Location
+import com.sc.dtracker.features.location.domain.models.LocationState
 import com.sc.dtracker.features.map.data.MapStartLocationRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.orbitmvi.orbit.Container
 import org.orbitmvi.orbit.ContainerHost
@@ -26,10 +29,13 @@ import org.orbitmvi.orbit.syntax.simple.subIntent
 class MapFeature(
     private val locationOutput: LocationChannelOutput,
     private val sensorDataRepository: SensorDataRepository,
+    private val recordLocationStartedState: StateFlow<Boolean>,
     private val mapStartLocationRepository: MapStartLocationRepository
 ) : ContainerHost<MapState, MapSideEffect> {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    private var returnToUserTrackingJob: Job? = null
 
     override val container: Container<MapState, MapSideEffect> = scope.container(
         MapState.NoLocation(0f)
@@ -37,31 +43,18 @@ class MapFeature(
         coroutineScope {
             launch { getLastAndStartObservingLocation() }
             launch { observeAzimuthFlow() }
+            launch { observeRecordLocationStarted() }
         }
     }
 
     fun onMapMovedByUser() = intent {
-        runOn(MapState.WithLocation::class) {
-            reduce { state.copy(followLocation = false) }
-        }
+        reduce { state.copyCommon(followLocation = false) }
+        maybeScheduleUserFollowing()
     }
 
-    // todo must return to follow user after some time and so we need to have onTrackingStarted/stopped callbacks
-    fun onTrackingStarted() = intent {
-        runOn(MapState.WithLocation::class) {
-            postSideEffect(
-                MapSideEffect.MapMove(
-                    location = state.location,
-                    animated = true,
-                    zoom = DEFAULT_FOLLOW_ZOOM,
-                )
-            )
-            reduce { state.copy(followLocation = true) }
-        }
-    }
-
-    // todo currently the same as onTrackingStarted but prbbly should behave differently
     fun onJumpToCurrentLocation() = intent {
+        reduce { state.copyCommon(followLocation = true) }
+
         runOn(MapState.WithLocation::class) {
             postSideEffect(
                 MapSideEffect.MapMove(
@@ -70,7 +63,34 @@ class MapFeature(
                     zoom = DEFAULT_FOLLOW_ZOOM,
                 )
             )
-            reduce { state.copy(followLocation = true) }
+        }
+    }
+
+    private fun maybeScheduleUserFollowing() = intent {
+        returnToUserTrackingJob?.cancel()
+        returnToUserTrackingJob = null
+
+        if (state.trackRecording) {
+            returnToUserTrackingJob = scope.launch {
+                delay(INTERVAL_BEFORE_RETURN_TO_LOCATION)
+                intent {
+                    reduce {
+                        state.copyCommon(followLocation = true)
+                    }
+                }
+            }
+        }
+    }
+
+    private suspend fun observeRecordLocationStarted() = subIntent {
+        scope.launch {
+            recordLocationStartedState.collect { started ->
+                if (started) {
+                    onTrackingStarted()
+                } else {
+                    onTrackingStopped()
+                }
+            }
         }
     }
 
@@ -79,16 +99,8 @@ class MapFeature(
             sensorDataRepository.getAzimuthFlow()
                 .collect { azimuth ->
                     intent {
-                        when (val st = state) {
-                            is MapState.NoLocation -> {
-                                reduce { st.copy(viewAzimuth = azimuth) }
-                            }
-
-                            is MapState.WithLocation -> {
-                                onLocationChangedAzimuthEffect(azimuth)
-                                reduce { st.copy(viewAzimuth = azimuth) }
-                            }
-                        }
+                        reduce { state.copyCommon(viewAzimuth = azimuth) }
+                        onLocationChangedAzimuthEffect(azimuth)
                     }
                 }
         }
@@ -109,7 +121,9 @@ class MapFeature(
             reduce {
                 MapState.WithLocation(
                     location = initialLocation,
-                    viewAzimuth = state.viewAzimuth
+                    viewAzimuth = state.viewAzimuth,
+                    followLocation = state.followLocation,
+                    trackRecording = state.trackRecording,
                 )
             }
 
@@ -151,6 +165,29 @@ class MapFeature(
                     }
                 }
         }
+    }
+
+    private fun onTrackingStarted() = intent {
+        reduce {
+            state.copyCommon(
+                followLocation = true,
+                trackRecording = true
+            )
+        }
+
+        runOn(MapState.WithLocation::class) {
+            postSideEffect(
+                MapSideEffect.MapMove(
+                    location = state.location,
+                    animated = true,
+                    zoom = DEFAULT_FOLLOW_ZOOM,
+                )
+            )
+        }
+    }
+
+    private fun onTrackingStopped() = intent {
+        reduce { state.copyCommon(trackRecording = false) }
     }
 
     @OrbitDsl
@@ -203,5 +240,6 @@ class MapFeature(
 
     private companion object {
         const val DEFAULT_FOLLOW_ZOOM = 17.0f
+        const val INTERVAL_BEFORE_RETURN_TO_LOCATION = 15_000L
     }
 }
