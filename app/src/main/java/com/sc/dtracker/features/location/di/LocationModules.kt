@@ -10,6 +10,7 @@ import com.google.android.gms.location.LocationServices
 import com.sc.dtracker.features.location.data.DefaultLocationClient
 import com.sc.dtracker.features.location.data.LocationStorage
 import com.sc.dtracker.features.location.data.LocationStorageImpl
+import com.sc.dtracker.features.location.data.RoutesPaletteImpl
 import com.sc.dtracker.features.location.data.SensorDataRepository
 import com.sc.dtracker.features.location.domain.LocationChannelImpl
 import com.sc.dtracker.features.location.domain.LocationChannelInput
@@ -17,11 +18,13 @@ import com.sc.dtracker.features.location.domain.LocationChannelOutput
 import com.sc.dtracker.features.location.domain.LocationClient
 import com.sc.dtracker.features.location.domain.LocationController
 import com.sc.dtracker.features.location.domain.LocationControllerImpl
+import com.sc.dtracker.features.location.domain.RoutesPalette
 import com.sc.dtracker.features.location.domain.mvi.RoutesFeature
 import com.sc.dtracker.features.location.ui.LocationNotificationController
 import com.sc.dtracker.features.location.ui.LocationNotificationControllerImpl
 import com.sc.dtracker.features.location.ui.RecordLocationLauncher
 import com.sc.dtracker.features.location.ui.RecordLocationLauncherImpl
+import org.koin.android.ext.koin.androidApplication
 import org.koin.dsl.binds
 import org.koin.dsl.module
 
@@ -34,6 +37,7 @@ val locationDataModule = module {
         LocationServices.getFusedLocationProviderClient(get<Context>())
     }
     single<SensorDataRepository> { SensorDataRepository(get()) }
+    single<RoutesPalette> { RoutesPaletteImpl(androidApplication()) }
 }
 
 val locationDomainModule = module {
@@ -42,7 +46,7 @@ val locationDomainModule = module {
     } binds (arrayOf(LocationChannelOutput::class, LocationChannelInput::class))
 
     single<LocationController> { LocationControllerImpl(get(), get(), get()) }
-    single<RoutesFeature> { RoutesFeature(get()) }
+    single<RoutesFeature> { RoutesFeature(get(), get()) }
 }
 
 val locationUiModule = module {

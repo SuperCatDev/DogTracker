@@ -4,7 +4,7 @@ import com.sc.dtracker.features.location.domain.models.Location
 
 data class RouteModel(
     val id: Int,
-    val color: Long,
+    val color: Int,
     val name: String,
     val points: List<Location>
 )

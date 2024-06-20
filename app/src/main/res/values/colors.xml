@@ -7,4 +7,12 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+
+    <color name="route_palette_1">#E10C0C</color>
+    <color name="route_palette_2">#2DDA49</color>
+    <color name="route_palette_3">#D01AD7</color>
+    <color name="route_palette_4">#2B46F1</color>
+    <color name="route_palette_5">#F6570D</color>
+    <color name="route_palette_6">#15F1AC</color>
 </resources>

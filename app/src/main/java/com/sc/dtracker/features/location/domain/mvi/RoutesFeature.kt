@@ -1,6 +1,7 @@
 package com.sc.dtracker.features.location.domain.mvi
 
 import com.sc.dtracker.features.location.domain.LocationChannelOutput
+import com.sc.dtracker.features.location.domain.RoutesPalette
 import com.sc.dtracker.features.location.domain.models.LocationState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -14,6 +15,7 @@ import org.orbitmvi.orbit.syntax.simple.reduce
 import kotlin.random.Random
 
 class RoutesFeature(
+    private val routesPalette: RoutesPalette,
     private val locationOutput: LocationChannelOutput,
 ) : ContainerHost<RoutesState, RoutesSideEffect> {
 
@@ -91,13 +93,11 @@ class RoutesFeature(
 
     private fun generateNewRecording(currentState: RoutesState): RouteModel {
         val id = currentState.staticRoutes.lastOrNull()?.id?.inc() ?: randomizer.nextInt()
-        val name = "Record_$id"
-        val color = 0xFFBB86FC
 
         return RouteModel(
             id = id,
-            color = color,
-            name = name,
+            color = routesPalette.getColorFromPaletteFor(id),
+            name = "Record_$id",
             points = emptyList()
         )
     }

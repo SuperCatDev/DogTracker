@@ -201,11 +201,9 @@ class MapViewContainer(
         } else {
             mapView.mapWindow.map.mapObjects.addPolyline().apply {
                 geometry = newGeometry
-                strokeWidth = 6f
-                turnRadius = 2f
-                // todo wtf with int/long? prbbl color in int?
-               // setStrokeColor(routeModel.color.toInt())
-                setStrokeColor(ContextCompat.getColor(mapView.context, R.color.purple_200))
+                strokeWidth = 10f
+                turnRadius = 4f
+                setStrokeColor(routeModel.color)
                 mapRoutePolylines[routeModel.id] = WeakReference(this)
             }
         }
