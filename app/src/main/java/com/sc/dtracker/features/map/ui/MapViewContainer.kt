@@ -8,7 +8,7 @@ import androidx.core.content.ContextCompat
 import com.sc.dtracker.R
 import com.sc.dtracker.common.ext.android.asDp
 import com.sc.dtracker.features.location.domain.models.Location
-import com.sc.dtracker.features.location.domain.mvi.RouteModel
+import com.sc.dtracker.features.location.domain.models.RouteModel
 import com.sc.dtracker.features.location.domain.mvi.RoutesFeature
 import com.sc.dtracker.features.location.domain.mvi.RoutesState
 import com.sc.dtracker.features.map.domain.MapRestoreStateHolder

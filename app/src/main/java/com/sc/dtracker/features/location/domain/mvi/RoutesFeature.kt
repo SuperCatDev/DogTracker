@@ -3,6 +3,7 @@ package com.sc.dtracker.features.location.domain.mvi
 import com.sc.dtracker.features.location.domain.LocationChannelOutput
 import com.sc.dtracker.features.location.domain.RoutesPalette
 import com.sc.dtracker.features.location.domain.models.LocationState
+import com.sc.dtracker.features.location.domain.models.RouteModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

@@ -8,6 +8,8 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.sc.dtracker.features.location.data.DefaultLocationClient
+import com.sc.dtracker.features.location.data.DistanceCalculator
+import com.sc.dtracker.features.location.data.DistanceCalculatorImpl
 import com.sc.dtracker.features.location.data.LocationStorage
 import com.sc.dtracker.features.location.data.LocationStorageImpl
 import com.sc.dtracker.features.location.data.RoutesPaletteImpl
@@ -38,6 +40,7 @@ val locationDataModule = module {
     }
     single<SensorDataRepository> { SensorDataRepository(get()) }
     single<RoutesPalette> { RoutesPaletteImpl(androidApplication()) }
+    single<DistanceCalculator> { DistanceCalculatorImpl() }
 }
 
 val locationDomainModule = module {
