@@ -17,6 +17,7 @@ import com.sc.dtracker.features.location.domain.LocationChannelOutput
 import com.sc.dtracker.features.location.domain.LocationClient
 import com.sc.dtracker.features.location.domain.LocationController
 import com.sc.dtracker.features.location.domain.LocationControllerImpl
+import com.sc.dtracker.features.location.domain.mvi.RoutesFeature
 import com.sc.dtracker.features.location.ui.LocationNotificationController
 import com.sc.dtracker.features.location.ui.LocationNotificationControllerImpl
 import com.sc.dtracker.features.location.ui.RecordLocationLauncher
@@ -41,9 +42,10 @@ val locationDomainModule = module {
     } binds (arrayOf(LocationChannelOutput::class, LocationChannelInput::class))
 
     single<LocationController> { LocationControllerImpl(get(), get(), get()) }
+    single<RoutesFeature> { RoutesFeature(get()) }
 }
 
 val locationUiModule = module {
     single<LocationNotificationController> { LocationNotificationControllerImpl() }
-    single<RecordLocationLauncher> { RecordLocationLauncherImpl() }
+    single<RecordLocationLauncher> { RecordLocationLauncherImpl(get()) }
 }

@@ -6,22 +6,22 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.core.app.ActivityCompat
+import com.sc.dtracker.common.coroutines.mapState
+import com.sc.dtracker.features.location.domain.mvi.RoutesFeature
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class RecordLocationLauncherImpl : RecordLocationLauncher {
-
-    private val locationStartedStateFlow = MutableStateFlow(isStarted())
-
-    private fun isStarted(): Boolean {
-        // todo remove service flag, migrate to some domain class that actually records the trail!
-        return LocationService.isLaunched
-    }
+class RecordLocationLauncherImpl(
+    private val routesFeature: RoutesFeature,
+) : RecordLocationLauncher {
 
     override fun observeStarted(): StateFlow<Boolean> {
-        return locationStartedStateFlow
+        return routesFeature.container.stateFlow
+            .mapState(routesFeature.container.scope) {
+                it.isRecording()
+            }
     }
 
     override fun start(context: Context) {
@@ -41,7 +41,7 @@ class RecordLocationLauncherImpl : RecordLocationLauncher {
         }
         context.startService(intent)
 
-        locationStartedStateFlow.requireEmit(true)
+        routesFeature.startNewRecord()
     }
 
     override fun stop(context: Context) {
@@ -49,10 +49,8 @@ class RecordLocationLauncherImpl : RecordLocationLauncher {
             action = LocationService.ACTION_STOP
         }
         context.startService(intent)
-
-        locationStartedStateFlow.requireEmit(false)
+        routesFeature.stopRecord()
     }
-
 
     @Suppress("OPT_IN_USAGE")
     private fun <T> MutableStateFlow<T>.requireEmit(value: T) {

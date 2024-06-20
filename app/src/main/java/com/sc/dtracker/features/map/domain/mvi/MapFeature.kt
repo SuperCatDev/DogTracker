@@ -187,6 +187,7 @@ class MapFeature(
     }
 
     private fun onTrackingStopped() = intent {
+        returnToUserTrackingJob?.cancel()
         reduce { state.copyCommon(trackRecording = false) }
     }
 

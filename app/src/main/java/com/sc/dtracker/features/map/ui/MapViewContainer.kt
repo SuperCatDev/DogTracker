@@ -8,6 +8,9 @@ import androidx.core.content.ContextCompat
 import com.sc.dtracker.R
 import com.sc.dtracker.common.ext.android.asDp
 import com.sc.dtracker.features.location.domain.models.Location
+import com.sc.dtracker.features.location.domain.mvi.RouteModel
+import com.sc.dtracker.features.location.domain.mvi.RoutesFeature
+import com.sc.dtracker.features.location.domain.mvi.RoutesState
 import com.sc.dtracker.features.map.domain.MapRestoreStateHolder
 import com.sc.dtracker.features.map.domain.mvi.MapFeature
 import com.sc.dtracker.features.map.domain.mvi.MapSideEffect
@@ -16,6 +19,7 @@ import com.sc.dtracker.ui.ext.lazyUnsafe
 import com.sc.dtracker.ui.theme.isDarkThemeInCompose
 import com.yandex.mapkit.Animation
 import com.yandex.mapkit.geometry.Point
+import com.yandex.mapkit.geometry.PolylineBuilder
 import com.yandex.mapkit.logo.Alignment
 import com.yandex.mapkit.logo.HorizontalAlignment
 import com.yandex.mapkit.logo.Padding
@@ -26,12 +30,14 @@ import com.yandex.mapkit.map.CameraUpdateReason
 import com.yandex.mapkit.map.IconStyle
 import com.yandex.mapkit.map.Map
 import com.yandex.mapkit.map.PlacemarkMapObject
+import com.yandex.mapkit.map.PolylineMapObject
 import com.yandex.mapkit.map.RotationType
 import com.yandex.mapkit.mapview.MapView
 import com.yandex.runtime.ui_view.ViewProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import java.lang.ref.WeakReference
 
 interface MapViewHost {
 
@@ -41,6 +47,7 @@ interface MapViewHost {
 class MapViewContainer(
     context: Context,
     private val mapFeature: MapFeature,
+    routesFeature: RoutesFeature,
     coroutineScope: CoroutineScope,
     private val stateHolder: MapRestoreStateHolder
 ) {
@@ -59,6 +66,7 @@ class MapViewContainer(
 
     private val locationMapListener = LocationCameraListener()
     private var locationPlacemark: PlacemarkMapObject? = null
+    private val mapRoutePolylines = mutableMapOf<Int, WeakReference<PolylineMapObject>>()
 
     private val mapView by lazyUnsafe {
         MapView(context).also {
@@ -98,10 +106,15 @@ class MapViewContainer(
         mapFeature
             .container
             .sideEffectFlow
-            .onEach(::collectSideEffect)
+            .onEach(::collectMapSideEffect)
+            .launchIn(coroutineScope)
+
+        routesFeature
+            .container
+            .stateFlow
+            .onEach(::collectRoutesState)
             .launchIn(coroutineScope)
     }
-
 
     fun onStart() {
         mapView.onStart()
@@ -140,7 +153,8 @@ class MapViewContainer(
         }
     }
 
-    private fun collectSideEffect(effect: MapSideEffect) {
+
+    private fun collectMapSideEffect(effect: MapSideEffect) {
         when (effect) {
             is MapSideEffect.MapMove -> {
                 moveMap(
@@ -156,6 +170,43 @@ class MapViewContainer(
                     location = effect.location,
                     azimuth = effect.azimuth,
                 )
+            }
+        }
+    }
+
+    private fun collectRoutesState(state: RoutesState) {
+        state.staticRoutes.forEach {
+            if (!mapRoutePolylines.contains(it.id)) {
+                addOrUpdatePolyLine(it)
+            }
+        }
+
+        state.recordingRoute?.let {
+            addOrUpdatePolyLine(it)
+        }
+    }
+
+    private fun addOrUpdatePolyLine(routeModel: RouteModel) {
+        val newGeometry = PolylineBuilder().apply {
+            routeModel.points.forEach { point ->
+                append(Point(point.latitude, point.longitude))
+            }
+        }
+            .build()
+
+        val existedPolyline = mapRoutePolylines[routeModel.id]?.get()
+
+        if (existedPolyline != null) {
+            existedPolyline.geometry = newGeometry
+        } else {
+            mapView.mapWindow.map.mapObjects.addPolyline().apply {
+                geometry = newGeometry
+                strokeWidth = 6f
+                turnRadius = 2f
+                // todo wtf with int/long? prbbl color in int?
+               // setStrokeColor(routeModel.color.toInt())
+                setStrokeColor(ContextCompat.getColor(mapView.context, R.color.purple_200))
+                mapRoutePolylines[routeModel.id] = WeakReference(this)
             }
         }
     }

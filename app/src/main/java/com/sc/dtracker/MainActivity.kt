@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.coroutineScope
+import com.sc.dtracker.features.location.domain.mvi.RoutesFeature
 import com.sc.dtracker.features.map.domain.MapRestoreStateHolder
 import com.sc.dtracker.features.map.domain.mvi.MapFeature
 import com.sc.dtracker.features.map.ui.MapViewContainer
@@ -24,11 +25,13 @@ class MainActivity : ComponentActivity(), MapViewHost {
     private val stateHolder: MapRestoreStateHolder by inject()
     private val coroutineScope = lifecycle.coroutineScope
     private val mapFeature: MapFeature by inject()
+    private val routesFeature: RoutesFeature by inject()
 
     private val mapViewContainer by lazyUnsafe {
         MapViewContainer(
             this,
             mapFeature,
+            routesFeature,
             coroutineScope,
             stateHolder
         )
