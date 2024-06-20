@@ -203,6 +203,8 @@ class MapViewContainer(
                 geometry = newGeometry
                 strokeWidth = 10f
                 turnRadius = 4f
+                outlineWidth = 1f
+                outlineColor = ContextCompat.getColor(mapView.context, R.color.black)
                 setStrokeColor(routeModel.color)
                 mapRoutePolylines[routeModel.id] = WeakReference(this)
             }
