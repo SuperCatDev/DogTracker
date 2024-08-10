@@ -30,14 +30,20 @@ import com.yandex.mapkit.map.CameraPosition
 import com.yandex.mapkit.map.CameraUpdateReason
 import com.yandex.mapkit.map.IconStyle
 import com.yandex.mapkit.map.Map
+import com.yandex.mapkit.map.MapObjectCollection
 import com.yandex.mapkit.map.PlacemarkMapObject
 import com.yandex.mapkit.map.PolylineMapObject
 import com.yandex.mapkit.map.RotationType
 import com.yandex.mapkit.mapview.MapView
 import com.yandex.runtime.ui_view.ViewProvider
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.lang.ref.WeakReference
 
 interface MapViewHost {
@@ -94,6 +100,7 @@ class MapViewContainer(
             }
 
             it.mapWindow.map.addCameraListener(locationMapListener)
+       //     it.mapWindow.map.mapObjects.addPohvisnevo(context)
         }
     }
 
@@ -117,6 +124,49 @@ class MapViewContainer(
             .launchIn(coroutineScope)
     }
 
+    private fun MapObjectCollection.addPohvisnevo(context: Context) {
+        val geometry24 = PolylineBuilder().apply {
+            append(Point(54.74697, 37.09642))
+            append(Point(54.74613, 37.10373))
+            append(Point(54.74708, 37.10294))
+            append(Point(54.74746, 37.10241))
+            append(Point(54.74809, 37.09683))
+
+        }
+            .build()
+
+        val geometry26 = PolylineBuilder().apply {
+            append(Point(54.74454, 37.09579))
+            append(Point(54.74449, 37.09617))
+            append(Point(54.74429, 37.10034))
+            append(Point(54.74482, 37.10181))
+            append(Point(54.74518, 37.10260))
+            append(Point(54.74593, 37.09614))
+
+        }
+            .build()
+
+       addPolyline().apply {
+            geometry = geometry24
+            strokeWidth = 4f
+            turnRadius = 4f
+            outlineWidth = 1f
+
+            outlineColor = ContextCompat.getColor(mapView.context, R.color.black)
+            setStrokeColor(ContextCompat.getColor(context, R.color.route_palette_5))
+        }
+
+        addPolyline().apply {
+            geometry = geometry26
+            strokeWidth = 4f
+            turnRadius = 4f
+            outlineWidth = 1f
+
+            outlineColor = ContextCompat.getColor(mapView.context, R.color.black)
+            setStrokeColor(ContextCompat.getColor(context, R.color.route_palette_3))
+        }
+    }
+
     fun onStart() {
         mapView.onStart()
     }
@@ -130,6 +180,14 @@ class MapViewContainer(
     }
 
     fun getView(): View {
+
+        GlobalScope.launch {
+            delay(1000)
+            withContext(Dispatchers.Main) {
+                mapView.mapWindow.map.mapObjects.addPohvisnevo(mapView.context)
+            }
+        }
+
         return mapView.also {
             if (it.mapWindow.map.isNightModeEnabled != isDarkThemeInCompose) {
                 it.mapWindow.map.isNightModeEnabled = isDarkThemeInCompose
