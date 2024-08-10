@@ -20,6 +20,7 @@ import com.sc.dtracker.ui.theme.isDarkThemeInCompose
 import com.yandex.mapkit.Animation
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.geometry.PolylineBuilder
+import com.yandex.mapkit.geometry.PolylinePosition
 import com.yandex.mapkit.logo.Alignment
 import com.yandex.mapkit.logo.HorizontalAlignment
 import com.yandex.mapkit.logo.Padding
@@ -191,21 +192,50 @@ class MapViewContainer(
             routeModel.points.forEach { point ->
                 append(Point(point.latitude, point.longitude))
             }
+
         }
             .build()
+
+        val arrowColor = ContextCompat.getColor(mapView.context, R.color.teal_200)
+        val arrowsList = mutableListOf<PolylinePosition>()
+
+        if (routeModel.points.isNotEmpty()) {
+            routeModel.points.indices
+            for (i in 0 until (routeModel.points.size - 1)) {
+                arrowsList.add(
+                    PolylinePosition(i, 0.5)
+                )
+            }
+
+        }
 
         val existedPolyline = mapRoutePolylines[routeModel.id]?.get()
 
         if (existedPolyline != null) {
             existedPolyline.geometry = newGeometry
+            existedPolyline.apply {
+                arrowsList.forEach {
+                    addArrow(it, 4f, arrowColor).also { arrow ->
+                        arrow.fillColor = routeModel.color
+                        arrow.triangleHeight = 2f
+                    }
+                }
+            }
         } else {
             mapView.mapWindow.map.mapObjects.addPolyline().apply {
                 geometry = newGeometry
-                strokeWidth = 10f
+                strokeWidth = 12f
                 turnRadius = 4f
                 outlineWidth = 1f
+
                 outlineColor = ContextCompat.getColor(mapView.context, R.color.black)
                 setStrokeColor(routeModel.color)
+                arrowsList.forEach {
+                    addArrow(it, 4f, arrowColor).also { arrow ->
+                        arrow.fillColor = routeModel.color
+                        arrow.triangleHeight = 2f
+                    }
+                }
                 mapRoutePolylines[routeModel.id] = WeakReference(this)
             }
         }
