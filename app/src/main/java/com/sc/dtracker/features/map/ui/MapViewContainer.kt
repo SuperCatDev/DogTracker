@@ -62,7 +62,7 @@ class MapViewContainer(
     private val locationView by lazyUnsafe {
         ImageView(context)
             .also {
-                val size = 25.asDp()
+                val size = 15.asDp()
                 it.layoutParams = FrameLayout.LayoutParams(
                     size,
                     size,
@@ -100,7 +100,7 @@ class MapViewContainer(
             }
 
             it.mapWindow.map.addCameraListener(locationMapListener)
-       //     it.mapWindow.map.mapObjects.addPohvisnevo(context)
+            //     it.mapWindow.map.mapObjects.addPohvisnevo(context)
         }
     }
 
@@ -135,9 +135,22 @@ class MapViewContainer(
         }
             .build()
 
+        val geometry25 = PolylineBuilder().apply {
+            append(Point(54.74697, 37.09642))
+            append(Point(54.74657, 37.09627))
+            append(Point(54.74593, 37.09614))
+            append(Point(54.74518, 37.10260))
+            append(Point(54.74554, 37.10338))
+            append(Point(54.74586, 37.10380))
+            append(Point(54.74613, 37.10373))
+
+        }
+            .build()
+
         val geometry26 = PolylineBuilder().apply {
             append(Point(54.74454, 37.09579))
             append(Point(54.74449, 37.09617))
+            append(Point(54.74399, 37.10017))
             append(Point(54.74429, 37.10034))
             append(Point(54.74482, 37.10181))
             append(Point(54.74518, 37.10260))
@@ -146,10 +159,10 @@ class MapViewContainer(
         }
             .build()
 
-       addPolyline().apply {
+        addPolyline().apply {
             geometry = geometry24
-            strokeWidth = 4f
-            turnRadius = 4f
+            strokeWidth = 2f
+            turnRadius = 2f
             outlineWidth = 1f
 
             outlineColor = ContextCompat.getColor(mapView.context, R.color.black)
@@ -157,9 +170,19 @@ class MapViewContainer(
         }
 
         addPolyline().apply {
+            geometry = geometry25
+            strokeWidth = 2f
+            turnRadius = 2f
+            outlineWidth = 1f
+
+            outlineColor = ContextCompat.getColor(mapView.context, R.color.black)
+            setStrokeColor(ContextCompat.getColor(context, R.color.route_palette_1))
+        }
+
+        addPolyline().apply {
             geometry = geometry26
-            strokeWidth = 4f
-            turnRadius = 4f
+            strokeWidth = 2f
+            turnRadius = 2f
             outlineWidth = 1f
 
             outlineColor = ContextCompat.getColor(mapView.context, R.color.black)
@@ -304,9 +327,9 @@ class MapViewContainer(
             ContextCompat.getDrawable(
                 context,
                 if (isDarkThemeInCompose) {
-                    R.drawable.my_location_icon_dark
+                    R.drawable.baseline_my_location_24
                 } else {
-                    R.drawable.my_location_icon_light
+                    R.drawable.baseline_my_location_24
                 }
             )
         )
